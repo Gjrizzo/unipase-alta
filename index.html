@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alta de Empresa — Unipase</title>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --blue: #1a56db;
+      --blue-lt: #e8f0fe;
+      --blue-dk: #1240a8;
+      --gray-0: #ffffff;
+      --gray-1: #f8f9fb;
+      --gray-2: #eef0f4;
+      --gray-3: #d4d8e1;
+      --gray-5: #6b7280;
+      --gray-9: #111827;
+      --green: #1a7f4b;
+      --green-lt: #ecfdf5;
+      --red: #b91c1c;
+      --red-lt: #fef2f2;
+      --radius: 8px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 15px;
+      color: var(--gray-9);
+      background: var(--gray-1);
+      min-height: 100vh;
+      padding: 32px 16px 64px;
+    }
+
+    .shell {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 32px;
+    }
+
+    .logo-mark {
+      width: 44px;
+      height: 44px;
+      background: var(--blue);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .header-text h1 {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--gray-9);
+      letter-spacing: -.3px;
+    }
+
+    .header-text p {
+      font-size: 13px;
+      color: var(--gray-5);
+      margin-top: 2px;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--gray-0);
+      border: 1px solid var(--gray-2);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+
+    .section-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--blue);
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .section-label svg {
+      flex-shrink: 0;
+    }
+
+    /* Grid layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 14px;
+    }
+
+    .span-2 {
+      grid-column: span 2;
+    }
+
+    @media (max-width: 580px) {
+
+      .grid-2,
+      .grid-3,
+      .grid-4 {
+        grid-template-columns: 1fr;
+      }
+
+      .span-2 {
+        grid-column: span 1;
+      }
+    }
+
+    /* Form fields */
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .field label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--gray-9);
+    }
+
+    .field label .req {
+      color: var(--blue);
+      margin-left: 2px;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      border: 1px solid var(--gray-3);
+      border-radius: var(--radius);
+      padding: 9px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--gray-9);
+      background: var(--gray-0);
+      transition: border-color .15s, box-shadow .15s;
+      width: 100%;
+    }
+
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus {
+      outline: none;
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(26, 86, 219, .12);
+    }
+
+    .field input.error,
+    .field select.error {
+      border-color: var(--red);
+    }
+
+    .field .err-msg {
+      font-size: 12px;
+      color: var(--red);
+      display: none;
+    }
+
+    .field .err-msg.show {
+      display: block;
+    }
+
+    .field textarea {
+      resize: vertical;
+      min-height: 72px;
+    }
+
+    .field select {
+      cursor: pointer;
+    }
+
+    /* Divider */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--gray-2);
+      margin: 20px 0;
+    }
+
+    /* Punto card */
+    .punto-card {
+      background: var(--gray-0);
+      border: 1px solid var(--gray-2);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 12px;
+      position: relative;
+    }
+
+    .punto-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .punto-num {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--blue);
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-remove {
+      background: none;
+      border: 1px solid var(--gray-3);
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 12px;
+      color: var(--gray-5);
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .btn-remove:hover {
+      border-color: var(--red);
+      color: var(--red);
+      background: var(--red-lt);
+    }
+
+    /* Add punto */
+    .btn-add-punto {
+      width: 100%;
+      padding: 12px;
+      border: 2px dashed var(--gray-3);
+      border-radius: 12px;
+      background: none;
+      font-size: 14px;
+      color: var(--gray-5);
+      cursor: pointer;
+      transition: all .15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 24px;
+    }
+
+    .btn-add-punto:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: var(--blue-lt);
+    }
+
+    /* Submit */
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s;
+      letter-spacing: -.1px;
+    }
+
+    .btn-submit:hover {
+      background: var(--blue-dk);
+    }
+
+    .btn-submit:disabled {
+      background: var(--gray-3);
+      cursor: not-allowed;
+    }
+
+    /* Toast */
+    .toast {
+      display: none;
+      padding: 14px 18px;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 16px;
+    }
+
+    .toast.ok {
+      background: var(--green-lt);
+      color: var(--green);
+      border: 1px solid #a7f3d0;
+      display: flex;
+    }
+
+    .toast.err {
+      background: var(--red-lt);
+      color: var(--red);
+      border: 1px solid #fca5a5;
+      display: flex;
+    }
+
+    /* Spinner */
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, .4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .field-hint {
+      font-size: 11px;
+      color: var(--gray-5);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="shell">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="logo-mark">
+        <svg width="24" height="24" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+          <polyline points="9 22 9 12 15 12 15 22" />
+        </svg>
+      </div>
+      <div class="header-text">
+        <h1>Alta de empresa y puntos</h1>
+        <p>Completá los datos para que el equipo de Unipase procese el alta.</p>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <form id="mainForm" novalidate>
+
+      <!-- ── EMPRESA ──────────────────────────────────────────────── -->
+      <div class="card">
+        <div class="section-label">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <rect x="2" y="7" width="20" height="14" rx="2" />
+            <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" />
+          </svg>
+          Datos de la empresa
+        </div>
+
+        <div class="grid-2" style="margin-bottom:14px">
+          <div class="field">
+            <label>Razón social <span class="req">*</span></label>
+            <input type="text" name="razon_social" maxlength="300" placeholder="Ej: Pronto Pago S.A." required>
+            <span class="err-msg">Campo obligatorio</span>
+          </div>
+          <div class="field">
+            <label>Nombre empresa</label>
+            <input type="text" name="nombre_comercial" maxlength="200" placeholder="Ej: Pronto Pago">
+          </div>
+        </div>
+
+        <div class="grid-3" style="margin-bottom:14px">
+          <div class="field">
+            <label>CUIT <span class="req">*</span></label>
+            <input type="text" name="cuit" maxlength="13" placeholder="30-12345678-9" required>
+            <span class="err-msg">Ingresá el CUIT</span>
+          </div>
+          <div class="field">
+            <label>Teléfono fijo</label>
+            <input type="tel" name="telefono_empresa" maxlength="20" placeholder="011 4xxx-xxxx">
+          </div>
+          <div class="field">
+            <label>Email de la empresa</label>
+            <input type="email" name="email_empresa" maxlength="100" placeholder="contacto@empresa.com">
+          </div>
+        </div>
+
+        <div class="grid-3" style="margin-bottom:14px">
+          <div class="field">
+            <label>CBU</label>
+            <input type="text" name="cbu" maxlength="44" placeholder="22 dígitos">
+            <span class="field-hint">Solo números, sin espacios</span>
+          </div>
+          <div class="field">
+            <label>Comisión $</label>
+            <input type="number" name="comision" min="0" step="0.01" placeholder="0.00">
+          </div>
+          <div class="field" style="visibility:hidden"></div>
+        </div>
+
+        <hr class="divider">
+
+        <div class="section-label"
+          style="margin-bottom:14px; font-size:11px; color:var(--gray-5); text-transform:none; letter-spacing:0; font-weight:500;">
+          Domicilio legal
+        </div>
+
+        <div class="grid-4" style="margin-bottom:14px">
+          <div class="field">
+            <label>Calle <span class="req">*</span></label>
+            <input type="text" name="calle_empresa" maxlength="200" placeholder="Av. Corrientes" required>
+            <span class="err-msg">Ingresá la calle</span>
+          </div>
+          <div class="field">
+            <label>Número</label>
+            <input type="number" name="numero_empresa" placeholder="1234" min="0">
+          </div>
+          <div class="field">
+            <label>Piso</label>
+            <input type="text" name="piso_empresa" maxlength="10" placeholder="2">
+          </div>
+          <div class="field">
+            <label>Dpto</label>
+            <input type="text" name="dpto_empresa" maxlength="12" placeholder="A">
+          </div>
+        </div>
+
+        <div class="grid-3" style="margin-bottom:14px">
+          <div class="field">
+            <label>Localidad <span class="req">*</span></label>
+            <input type="text" name="localidad_empresa" maxlength="50" placeholder="Buenos Aires" required>
+            <span class="err-msg">Ingresá la localidad</span>
+          </div>
+          <div class="field">
+            <label>Provincia</label>
+            <select name="provincia_empresa">
+              <option value="">— Seleccionar —</option>
+              <option>Buenos Aires</option>
+              <option>CABA</option>
+              <option>Catamarca</option>
+              <option>Chaco</option>
+              <option>Chubut</option>
+              <option>Córdoba</option>
+              <option>Corrientes</option>
+              <option>Entre Ríos</option>
+              <option>Formosa</option>
+              <option>Jujuy</option>
+              <option>La Pampa</option>
+              <option>La Rioja</option>
+              <option>Mendoza</option>
+              <option>Misiones</option>
+              <option>Neuquén</option>
+              <option>Río Negro</option>
+              <option>Salta</option>
+              <option>San Juan</option>
+              <option>San Luis</option>
+              <option>Santa Cruz</option>
+              <option>Santa Fe</option>
+              <option>Santiago del Estero</option>
+              <option>Tierra del Fuego</option>
+              <option>Tucumán</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Código postal</label>
+            <input type="text" name="cp_empresa" maxlength="16" placeholder="1000">
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top:14px">
+          <div class="field">
+            <label>Responsable a cargo</label>
+            <input type="text" name="responsable_empresa" maxlength="200" placeholder="Nombre completo">
+          </div>
+          <div class="field">
+            <label>Controladora</label>
+            <select name="controladora">
+              <option value="">— Seleccionar —</option>
+              <option>BUTERA</option>
+              <option>EZEQUIEL_EMPRESA</option>
+              <option>FRANCISCO_EMPRESA</option>
+              <option>GMEYER_EMPRESA</option>
+              <option>LFERNANDEZ_EMPRESA</option>
+              <option>MANAGEMENT SOLUTIONS</option>
+              <option>MAXIMO_EMPRESA</option>
+              <option>NADIA_EMPRESA</option>
+              <option>OPEN25</option>
+              <option>OROMI EZEQUIEL</option>
+              <option>UNIPASE</option>
+              <option>VANESA_EMPRESA</option>
+              <option>YAMILA_EMPRESA</option>
+            </select>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── PUNTOS ────────────────────────────────────────────────── -->
+      <div id="puntos-container"></div>
+
+      <button type="button" class="btn-add-punto" onclick="agregarPunto()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+        Agregar punto de colocación
+      </button>
+
+      <!-- Submit -->
+      <div class="toast" id="toast2"></div>
+      <button type="submit" class="btn-submit" id="btnSubmit">Enviar datos</button>
+
+    </form>
+  </div>
+
+  <script>
+    // ── EmailJS config ─────────────────────────────────────────
+    // REEMPLAZÁ estos valores con los tuyos de emailjs.com
+    const EMAILJS_PUBLIC_KEY = "TgDZVKqIJb5Hj7Ypx";
+    const EMAILJS_SERVICE_ID = "service_njfi4cw";
+    const EMAILJS_TEMPLATE_ID = "template_nssn7ro";
+    const DESTINO_EMAIL = "gustavo.rizzo@unipase.com";
+
+    emailjs.init(EMAILJS_PUBLIC_KEY);
+
+    // ── Puntos ─────────────────────────────────────────────────
+    let puntoCount = 0;
+
+    function agregarPunto() {
+      puntoCount++;
+      const id = puntoCount;
+      const container = document.getElementById("puntos-container");
+
+      const div = document.createElement("div");
+      div.className = "punto-card";
+      div.id = `punto-${id}`;
+      div.innerHTML = `
+      <div class="punto-header">
+        <span class="punto-num">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Punto de colocación ${id}
+        </span>
+        ${id > 1 ? `<button type="button" class="btn-remove" onclick="eliminarPunto(${id})">Eliminar</button>` : ''}
+      </div>
+
+      <div class="grid-2" style="margin-bottom:14px">
+        <div class="field">
+          <label>Nombre del punto <span class="req">*</span></label>
+          <input type="text" name="p${id}_nombre" maxlength="200" placeholder="Ej: Sucursal Centro" required>
+          <span class="err-msg">Campo obligatorio</span>
+        </div>
+        <div class="field">
+          <label>Responsable</label>
+          <input type="text" name="p${id}_responsable" maxlength="200" placeholder="Nombre completo">
+        </div>
+      </div>
+
+      <div class="grid-3" style="margin-bottom:14px">
+        <div class="field">
+          <label>Email</label>
+          <input type="email" name="p${id}_email" maxlength="200" placeholder="punto@empresa.com">
+        </div>
+        <div class="field">
+          <label>Teléfono</label>
+          <input type="tel" name="p${id}_telefono" maxlength="20" placeholder="011 4xxx-xxxx">
+        </div>
+        <div class="field">
+          <label>Ocupación / Rubro</label>
+          <select name="p${id}_ocupacion">
+            <option value="">— Seleccionar —</option>
+            <option>ACCESORIOS</option>
+            <option>AUTOMOTRIZ</option>
+            <option>AUTORADIO/ALARMAS</option>
+            <option>BATERIAS</option>
+            <option>CERRAJERIA</option>
+            <option>COMERCIO PARADOR</option>
+            <option>CONSECIONARIA</option>
+            <option>CRISTALEROS</option>
+            <option>DRUGSTORE</option>
+            <option>ESTACION DE SERVICIO</option>
+            <option>ESTACIONAMIENTO</option>
+            <option>FERRETERIA</option>
+            <option>GARAGE</option>
+            <option>GOMERIA</option>
+            <option>KIOSKO</option>
+            <option>LAVADERO</option>
+            <option>LUBRICENTRO</option>
+            <option>MOTOS</option>
+            <option>PUNTOS DIRECTOS</option>
+            <option>RAPIPAGO</option>
+            <option>REPUESTOS</option>
+            <option>SEGUROS</option>
+            <option>TALLER</option>
+            <option>TERECEROS</option>
+            <option>TRANSPORTE</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="font-size:12px;font-weight:500;color:var(--gray-5);margin-bottom:12px;">Domicilio del punto</div>
+
+      <div class="grid-4" style="margin-bottom:14px">
+        <div class="field">
+          <label>Calle <span class="req">*</span></label>
+          <input type="text" name="p${id}_calle" maxlength="200" placeholder="Nombre de la calle" required>
+          <span class="err-msg">Ingresá la calle</span>
+        </div>
+        <div class="field">
+          <label>Número</label>
+          <input type="number" name="p${id}_numero" placeholder="1234" min="0">
+        </div>
+        <div class="field">
+          <label>Piso</label>
+          <input type="text" name="p${id}_piso" maxlength="10" placeholder="2">
+        </div>
+        <div class="field">
+          <label>Dpto</label>
+          <input type="text" name="p${id}_dpto" maxlength="12" placeholder="A">
+        </div>
+      </div>
+
+      <div class="grid-3" style="margin-bottom:14px">
+        <div class="field">
+          <label>Localidad</label>
+          <input type="text" name="p${id}_localidad" maxlength="200" placeholder="Ciudad">
+        </div>
+        <div class="field">
+          <label>Provincia</label>
+          <select name="p${id}_provincia">
+            <option value="">— Seleccionar —</option>
+            <option>Buenos Aires</option><option>CABA</option>
+            <option>Catamarca</option><option>Chaco</option>
+            <option>Chubut</option><option>Córdoba</option>
+            <option>Corrientes</option><option>Entre Ríos</option>
+            <option>Formosa</option><option>Jujuy</option>
+            <option>La Pampa</option><option>La Rioja</option>
+            <option>Mendoza</option><option>Misiones</option>
+            <option>Neuquén</option><option>Río Negro</option>
+            <option>Salta</option><option>San Juan</option>
+            <option>San Luis</option><option>Santa Cruz</option>
+            <option>Santa Fe</option><option>Santiago del Estero</option>
+            <option>Tierra del Fuego</option><option>Tucumán</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Código postal</label>
+          <input type="text" name="p${id}_cp" maxlength="16" placeholder="1000">
+        </div>
+      </div>
+
+      <div style="font-size:12px;font-weight:500;color:var(--gray-5);margin-bottom:12px;">Datos web</div>
+
+      <div class="grid-2" style="margin-bottom:14px">
+        <div class="field">
+          <label>Nombre web</label>
+          <input type="text" name="p${id}_nombre_web" maxlength="200" placeholder="Como aparece en el sistema web">
+        </div>
+        <div class="field">
+          <label>Coordenadas GPS</label>
+          <input type="text" name="p${id}_coords" maxlength="200" placeholder="-34.6037, -58.3816">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Horarios de atención</label>
+        <textarea name="p${id}_horarios" maxlength="440" placeholder="Ej: Lunes a viernes de 9 a 18hs"></textarea>
+      </div>
+    `;
+      container.appendChild(div);
+    }
+
+    function eliminarPunto(id) {
+      const el = document.getElementById(`punto-${id}`);
+      if (el) el.remove();
+    }
+
+    // ── Formato del mail (exactamente como lo lee el bot) ───────
+    function armarTexto(data) {
+      const v = (name) => (data[name] || "").trim();
+
+      let txt = `───────────────────────────────\n`;
+      txt += `📋 DATOS DE LA EMPRESA\n`;
+      txt += `───────────────────────────────\n`;
+      txt += `Razón Social: ${v("razon_social")}\n`;
+      if (v("nombre_comercial")) txt += `Nombre comercial: ${v("nombre_comercial")}\n`;
+      txt += `CUIT: ${v("cuit")}\n`;
+      if (v("telefono_empresa")) txt += `Teléfono fijo: ${v("telefono_empresa")}\n`;
+      if (v("email_empresa")) txt += `Email: ${v("email_empresa")}\n`;
+      if (v("cbu")) txt += `CBU: ${v("cbu")}\n`;
+      if (v("comision")) txt += `Comisión: $${v("comision")}\n`;
+      txt += `\nDomicilio legal:\n`;
+      txt += `  Calle: ${v("calle_empresa")}\n`;
+      txt += `  Número: ${v("numero_empresa")}\n`;
+      txt += `  Piso: ${v("piso_empresa")}\n`;
+      txt += `  Departamento: ${v("dpto_empresa")}\n`;
+      txt += `  Localidad: ${v("localidad_empresa")}\n`;
+      txt += `  Provincia: ${v("provincia_empresa")}\n`;
+      txt += `  Código Postal: ${v("cp_empresa")}\n`;
+      if (v("responsable_empresa")) txt += `\nResponsable a cargo: ${v("responsable_empresa")}\n`;
+      if (v("controladora")) txt += `Controladora: ${v("controladora")}\n`;
+
+      // Puntos
+      const cards = document.querySelectorAll(".punto-card");
+      if (cards.length > 0) {
+        txt += `\n───────────────────────────────\n`;
+        txt += `📍 DATOS DEL PUNTO DE COLOCACIÓN\n`;
+        txt += `───────────────────────────────\n`;
+      }
+
+      cards.forEach((card, idx) => {
+        const id = card.id.replace("punto-", "");
+        const p = (name) => (data[`p${id}_${name}`] || "").trim();
+        txt += `\n${idx + 1}-\n`;
+        txt += `Nombre del punto: ${p("nombre")}\n`;
+        if (p("email")) txt += `Email: ${p("email")}\n`;
+        if (p("telefono")) txt += `Teléfono: ${p("telefono")}\n`;
+        if (p("responsable")) txt += `Responsable: ${p("responsable")}\n`;
+        if (p("ocupacion")) txt += `Ocupación / Rubro: ${p("ocupacion")}\n`;
+        txt += `\nDomicilio del punto:\n`;
+        txt += `  Calle: ${p("calle")}\n`;
+        txt += `  Número: ${p("numero")}\n`;
+        txt += `  Piso: ${p("piso")}\n`;
+        txt += `  Departamento: ${p("dpto")}\n`;
+        txt += `  Localidad: ${p("localidad")}\n`;
+        txt += `  Provincia: ${p("provincia")}\n`;
+        txt += `  Código Postal: ${p("cp")}\n`;
+        if (p("horarios") || p("nombre_web") || p("coords")) {
+          txt += `\nDatos web:\n`;
+          if (p("nombre_web")) txt += `  Nombre web: ${p("nombre_web")}\n`;
+          if (p("horarios")) txt += `  Horarios de atención: ${p("horarios")}\n`;
+          if (p("coords")) txt += `  Coordenadas GPS: ${p("coords")}\n`;
+        }
+        if (idx < cards.length - 1) txt += `\n---\n`;
+      });
+
+      return txt;
+    }
+
+    // ── Validación ─────────────────────────────────────────────
+    function validar(form) {
+      let ok = true;
+      form.querySelectorAll("[required]").forEach(el => {
+        const msg = el.nextElementSibling;
+        if (!el.value.trim()) {
+          el.classList.add("error");
+          if (msg && msg.classList.contains("err-msg")) msg.classList.add("show");
+          ok = false;
+        } else {
+          el.classList.remove("error");
+          if (msg && msg.classList.contains("err-msg")) msg.classList.remove("show");
+        }
+      });
+      return ok;
+    }
+
+    // ── Submit ─────────────────────────────────────────────────
+    document.getElementById("mainForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      if (!validar(e.target)) {
+        showToast("Completá los campos obligatorios marcados con *", "err");
+        return;
+      }
+
+      const btn = document.getElementById("btnSubmit");
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner"></span> Enviando...`;
+
+      const formData = Object.fromEntries(new FormData(e.target));
+      const cuerpo = armarTexto(formData);
+      const empresa = (formData["nombre_comercial"] || formData["razon_social"] || "").trim();
+
+      try {
+        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+          to_email: DESTINO_EMAIL,
+          empresa: empresa,
+          cuerpo: cuerpo,
+        });
+
+        showToast("✓ Datos enviados correctamente. El equipo de Unipase procesará el alta a la brevedad.", "ok");
+        e.target.reset();
+        document.getElementById("puntos-container").innerHTML = "";
+        puntoCount = 0;
+        agregarPunto();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } catch (err) {
+        console.error(err);
+        showToast("No se pudo enviar. Intentá de nuevo o contactá a tu encargado de cuenta.", "err");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Enviar datos";
+      }
+    });
+
+    function showToast(msg, type) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.className = `toast ${type}`;
+      t.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    // Arrancar con un punto
+    agregarPunto();
+  </script>
+</body>
+
+</html>
