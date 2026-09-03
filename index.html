@@ -350,6 +350,20 @@
       font-size: 11px;
       color: var(--gray-5);
     }
+
+    .field .char-count {
+      font-size: 11px;
+      color: var(--gray-5);
+      text-align: right;
+    }
+
+    .field .char-count.warn {
+      color: var(--red);
+    }
+
+    .field input.ok {
+      border-color: #22c55e;
+    }
   </style>
 </head>
 
@@ -389,36 +403,46 @@
         <div class="grid-2" style="margin-bottom:14px">
           <div class="field">
             <label>Razón social <span class="req">*</span></label>
-            <input type="text" name="razon_social" maxlength="300" placeholder="Ej: Pronto Pago S.A." required>
+            <input type="text" name="razon_social" maxlength="300" placeholder="Ej: Transportes del Sur S.A." required
+              oninput="validarTexto(this,300)">
             <span class="err-msg">Campo obligatorio</span>
           </div>
           <div class="field">
             <label>Nombre empresa</label>
-            <input type="text" name="nombre_comercial" maxlength="200" placeholder="Ej: Pronto Pago">
+            <input type="text" name="nombre_comercial" maxlength="200" placeholder="Ej: Transportes del Sur"
+              oninput="validarTexto(this,200)">
           </div>
         </div>
 
         <div class="grid-3" style="margin-bottom:14px">
           <div class="field">
             <label>CUIT <span class="req">*</span></label>
-            <input type="text" name="cuit" maxlength="13" placeholder="30-12345678-9" required>
-            <span class="err-msg">Ingresá el CUIT</span>
+            <input type="text" name="cuit" maxlength="11" placeholder="Solo números, sin guiones" required
+              oninput="validarSoloNumeros(this,11)" inputmode="numeric">
+            <span class="field-hint">11 dígitos sin guiones. Ej: 30123456789</span>
+            <span class="err-msg">Ingresá el CUIT (11 dígitos, solo números)</span>
           </div>
           <div class="field">
             <label>Teléfono fijo</label>
-            <input type="tel" name="telefono_empresa" maxlength="20" placeholder="011 4xxx-xxxx">
+            <input type="tel" name="telefono_empresa" maxlength="20" placeholder="Solo números. Ej: 1147321124"
+              oninput="validarTelefono(this)">
+            <span class="field-hint">Sin 0 ni 15 adelante, sin guiones</span>
           </div>
           <div class="field">
             <label>Email de la empresa</label>
-            <input type="email" name="email_empresa" maxlength="100" placeholder="contacto@empresa.com">
+            <input type="email" name="email_empresa" maxlength="100" placeholder="contacto@empresa.com"
+              oninput="validarEmail(this)">
+            <span class="err-msg">Email no válido</span>
           </div>
         </div>
 
         <div class="grid-3" style="margin-bottom:14px">
           <div class="field">
             <label>CBU</label>
-            <input type="text" name="cbu" maxlength="44" placeholder="22 dígitos">
-            <span class="field-hint">Solo números, sin espacios</span>
+            <input type="text" name="cbu" maxlength="22" placeholder="22 dígitos, sin espacios"
+              oninput="validarSoloNumeros(this,22)" inputmode="numeric">
+            <span class="field-hint">Exactamente 22 dígitos</span>
+            <span class="err-msg">El CBU debe tener exactamente 22 dígitos</span>
           </div>
           <div class="field">
             <label>Comisión $</label>
@@ -437,27 +461,29 @@
         <div class="grid-4" style="margin-bottom:14px">
           <div class="field">
             <label>Calle <span class="req">*</span></label>
-            <input type="text" name="calle_empresa" maxlength="200" placeholder="Av. Corrientes" required>
+            <input type="text" name="calle_empresa" maxlength="200" placeholder="Ej: Av. San Martín" required
+              oninput="validarTexto(this,200)">
             <span class="err-msg">Ingresá la calle</span>
           </div>
           <div class="field">
             <label>Número</label>
-            <input type="number" name="numero_empresa" placeholder="1234" min="0">
+            <input type="number" name="numero_empresa" placeholder="Ej: 1450" min="0" max="99999">
           </div>
           <div class="field">
             <label>Piso</label>
-            <input type="text" name="piso_empresa" maxlength="10" placeholder="2">
+            <input type="text" name="piso_empresa" maxlength="10" placeholder="Ej: 3">
           </div>
           <div class="field">
             <label>Dpto</label>
-            <input type="text" name="dpto_empresa" maxlength="12" placeholder="A">
+            <input type="text" name="dpto_empresa" maxlength="12" placeholder="Ej: B">
           </div>
         </div>
 
         <div class="grid-3" style="margin-bottom:14px">
           <div class="field">
             <label>Localidad <span class="req">*</span></label>
-            <input type="text" name="localidad_empresa" maxlength="50" placeholder="Buenos Aires" required>
+            <input type="text" name="localidad_empresa" maxlength="50" placeholder="Ej: Junín" required
+              oninput="validarTexto(this,50)">
             <span class="err-msg">Ingresá la localidad</span>
           </div>
           <div class="field">
@@ -492,7 +518,8 @@
           </div>
           <div class="field">
             <label>Código postal</label>
-            <input type="text" name="cp_empresa" maxlength="16" placeholder="1000">
+            <input type="text" name="cp_empresa" maxlength="16" placeholder="Ej: 6000"
+              oninput="validarSoloNumeros(this,16)" inputmode="numeric">
           </div>
         </div>
 
@@ -575,23 +602,33 @@
       <div class="grid-2" style="margin-bottom:14px">
         <div class="field">
           <label>Nombre del punto <span class="req">*</span></label>
-          <input type="text" name="p${id}_nombre" maxlength="200" placeholder="Ej: Sucursal Centro" required>
+          <input type="text" name="p${id}_nombre" maxlength="200"
+                 placeholder="Ej: Sucursal Centro" required
+                 oninput="validarTexto(this,200)">
           <span class="err-msg">Campo obligatorio</span>
         </div>
         <div class="field">
           <label>Responsable</label>
-          <input type="text" name="p${id}_responsable" maxlength="200" placeholder="Nombre completo">
+          <input type="text" name="p${id}_responsable" maxlength="200"
+                 placeholder="Ej: María García"
+                 oninput="validarTexto(this,200)">
         </div>
       </div>
 
       <div class="grid-3" style="margin-bottom:14px">
         <div class="field">
           <label>Email</label>
-          <input type="email" name="p${id}_email" maxlength="200" placeholder="punto@empresa.com">
+          <input type="email" name="p${id}_email" maxlength="200"
+                 placeholder="responsable@email.com"
+                 oninput="validarEmail(this)">
+          <span class="err-msg">Email no válido</span>
         </div>
         <div class="field">
           <label>Teléfono</label>
-          <input type="tel" name="p${id}_telefono" maxlength="20" placeholder="011 4xxx-xxxx">
+          <input type="tel" name="p${id}_telefono" maxlength="20"
+                 placeholder="Ej: 2317484976"
+                 oninput="validarTelefono(this)">
+          <span class="field-hint">Sin 0 ni 15 adelante, sin guiones</span>
         </div>
         <div class="field">
           <label>Ocupación / Rubro</label>
@@ -631,27 +668,31 @@
       <div class="grid-4" style="margin-bottom:14px">
         <div class="field">
           <label>Calle <span class="req">*</span></label>
-          <input type="text" name="p${id}_calle" maxlength="200" placeholder="Nombre de la calle" required>
+          <input type="text" name="p${id}_calle" maxlength="200"
+                 placeholder="Ej: Av. Pellegrini" required
+                 oninput="validarTexto(this,200)">
           <span class="err-msg">Ingresá la calle</span>
         </div>
         <div class="field">
           <label>Número</label>
-          <input type="number" name="p${id}_numero" placeholder="1234" min="0">
+          <input type="number" name="p${id}_numero" placeholder="Ej: 1208" min="0" max="99999">
         </div>
         <div class="field">
           <label>Piso</label>
-          <input type="text" name="p${id}_piso" maxlength="10" placeholder="2">
+          <input type="text" name="p${id}_piso" maxlength="10" placeholder="Ej: 1">
         </div>
         <div class="field">
           <label>Dpto</label>
-          <input type="text" name="p${id}_dpto" maxlength="12" placeholder="A">
+          <input type="text" name="p${id}_dpto" maxlength="12" placeholder="Ej: A">
         </div>
       </div>
 
       <div class="grid-3" style="margin-bottom:14px">
         <div class="field">
           <label>Localidad</label>
-          <input type="text" name="p${id}_localidad" maxlength="200" placeholder="Ciudad">
+          <input type="text" name="p${id}_localidad" maxlength="200"
+                 placeholder="Ej: 9 de Julio"
+                 oninput="validarTexto(this,200)">
         </div>
         <div class="field">
           <label>Provincia</label>
@@ -673,7 +714,7 @@
         </div>
         <div class="field">
           <label>Código postal</label>
-          <input type="text" name="p${id}_cp" maxlength="16" placeholder="1000">
+          <input type="text" name="p${id}_cp" maxlength="16" placeholder="Ej: 6500" oninput="validarSoloNumeros(this,16)" inputmode="numeric">
         </div>
       </div>
 
@@ -686,13 +727,13 @@
         </div>
         <div class="field">
           <label>Coordenadas GPS</label>
-          <input type="text" name="p${id}_coords" maxlength="200" placeholder="-34.6037, -58.3816">
+          <input type="text" name="p${id}_coords" maxlength="200" placeholder="Ej: -34.6037, -58.3816">
         </div>
       </div>
 
       <div class="field">
         <label>Horarios de atención</label>
-        <textarea name="p${id}_horarios" maxlength="440" placeholder="Ej: Lunes a viernes de 9 a 18hs"></textarea>
+        <textarea name="p${id}_horarios" maxlength="440" placeholder="Ej: Lunes a viernes de 9 a 18 hs, sábados de 9 a 13 hs"></textarea>
       </div>
     `;
       container.appendChild(div);
@@ -786,7 +827,7 @@
     document.getElementById("mainForm").addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      if (!validar(e.target)) {
+      if (!validarTodo(e.target)) {
         showToast("Completá los campos obligatorios marcados con *", "err");
         return;
       }
@@ -826,6 +867,104 @@
       t.textContent = msg;
       t.className = `toast ${type}`;
       t.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    // ── Funciones de validación ────────────────────────────────────
+
+    function soloDigitos(s) { return s.replace(/\D/g, ''); }
+
+    function validarSoloNumeros(el, maxLen) {
+      const cleaned = soloDigitos(el.value);
+      el.value = cleaned;                          // elimina lo que no es dígito
+      const msg = el.nextElementSibling;
+      const hint = el.parentElement.querySelector('.field-hint');
+
+      if (el.name === 'cbu' && cleaned.length > 0 && cleaned.length !== 22) {
+        el.classList.add('error'); el.classList.remove('ok');
+        if (msg && msg.classList.contains('err-msg')) msg.classList.add('show');
+      } else if (el.name === 'cuit' && cleaned.length > 0 && cleaned.length !== 11) {
+        el.classList.add('error'); el.classList.remove('ok');
+        if (msg && msg.classList.contains('err-msg')) msg.classList.add('show');
+      } else {
+        el.classList.remove('error');
+        if (cleaned.length === maxLen) el.classList.add('ok');
+        else el.classList.remove('ok');
+        if (msg && msg.classList.contains('err-msg')) msg.classList.remove('show');
+      }
+    }
+
+    function validarTelefono(el) {
+      let cleaned = soloDigitos(el.value);
+      // Quitar 0 o 15 del inicio si hay más de 8 dígitos
+      if (cleaned.length > 8) {
+        cleaned = cleaned.replace(/^0/, '').replace(/^54/, '');
+      }
+      el.value = cleaned;
+      const ok = cleaned.length >= 7 && cleaned.length <= 20;
+      el.classList.toggle('error', cleaned.length > 0 && !ok);
+      el.classList.toggle('ok', cleaned.length > 0 && ok);
+    }
+
+    function validarEmail(el) {
+      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const msg = el.nextElementSibling;
+      const ok = !el.value || re.test(el.value.trim());
+      el.classList.toggle('error', !ok);
+      el.classList.toggle('ok', ok && el.value.length > 0);
+      if (msg && msg.classList.contains('err-msg'))
+        ok ? msg.classList.remove('show') : msg.classList.add('show');
+    }
+
+    function validarTexto(el, maxLen) {
+      const len = el.value.length;
+      el.classList.toggle('ok', len > 0 && len <= maxLen);
+    }
+
+    // Validación completa al enviar (refuerza requeridos + formatos)
+    function validarTodo(form) {
+      let ok = true;
+
+      // Campos requeridos
+      form.querySelectorAll('[required]').forEach(el => {
+        const msg = el.parentElement.querySelector('.err-msg');
+        if (!el.value.trim()) {
+          el.classList.add('error');
+          if (msg) msg.classList.add('show');
+          ok = false;
+        } else {
+          el.classList.remove('error');
+          if (msg) msg.classList.remove('show');
+        }
+      });
+
+      // CUIT: exactamente 11 dígitos
+      const cuit = form.querySelector('[name="cuit"]');
+      if (cuit && cuit.value && soloDigitos(cuit.value).length !== 11) {
+        cuit.classList.add('error');
+        cuit.parentElement.querySelector('.err-msg').classList.add('show');
+        ok = false;
+      }
+
+      // CBU: exactamente 22 dígitos si se completó
+      const cbu = form.querySelector('[name="cbu"]');
+      if (cbu && cbu.value && soloDigitos(cbu.value).length !== 22) {
+        cbu.classList.add('error');
+        cbu.parentElement.querySelector('.err-msg').classList.add('show');
+        ok = false;
+      }
+
+      // Emails
+      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      form.querySelectorAll('[type="email"]').forEach(el => {
+        if (el.value && !re.test(el.value.trim())) {
+          el.classList.add('error');
+          const msg = el.nextElementSibling;
+          if (msg && msg.classList.contains('err-msg')) msg.classList.add('show');
+          ok = false;
+        }
+      });
+
+      return ok;
     }
 
     // Arrancar con un punto
