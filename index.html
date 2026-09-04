@@ -270,7 +270,17 @@
           <input id="u_idpunto" type="text" placeholder="Ej: 6607" maxlength="10">
         </div>
         <div class="field" style="display:flex;align-items:flex-end;">
-          <button class="btn btn-purple" style="width:100%;padding:8px;" onclick="generarResumen()">
+          <button class="btn btn-purple" style="width:100%;padding:8px;" onclick="
+            var e=document.getElementById('e_nombre_comercial').value||document.getElementById('e_razon_social').value||'';
+            var p=document.getElementById('p_nombre_comercial').value||e;
+            var u=document.getElementById('u_nombre_usuario').value||'';
+            var pw=document.getElementById('u_password').value||'';
+            var id=document.getElementById('u_idpunto').value||'';
+            var t='EMPRESA  : '+e.toUpperCase()+'\nPUNTO    : '+p.toUpperCase()+'\nUSUARIO  : '+u+(pw?'\nPASS     : '+pw:'')+(id?'\nIDPUNTO  : '+id:'');
+            document.getElementById('resumenTxt').value=t;
+            document.getElementById('resumenWrap').style.display='block';
+            document.getElementById('resumenTxt').select();
+          ">
             📧 Generar resumen
           </button>
         </div>
