@@ -1,975 +1,545 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Alta de Empresa — Unipase</title>
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <title>Unipase Bot</title>
   <style>
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --blue: #1a56db;
-      --blue-lt: #e8f0fe;
-      --blue-dk: #1240a8;
-      --gray-0: #ffffff;
-      --gray-1: #f8f9fb;
-      --gray-2: #eef0f4;
-      --gray-3: #d4d8e1;
-      --gray-5: #6b7280;
-      --gray-9: #111827;
-      --green: #1a7f4b;
-      --green-lt: #ecfdf5;
-      --red: #b91c1c;
-      --red-lt: #fef2f2;
+      --blue: #1a56db; --blue-dk: #1240a8; --blue-lt: #e8f0fe;
+      --green: #15803d; --green-lt: #dcfce7;
+      --red: #b91c1c;   --red-lt: #fef2f2;
+      --gray-0: #fff; --gray-1: #f8f9fb; --gray-2: #eef0f4;
+      --gray-3: #d4d8e1; --gray-5: #6b7280; --gray-9: #111827;
       --radius: 8px;
     }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      font-size: 15px;
-      color: var(--gray-9);
-      background: var(--gray-1);
-      min-height: 100vh;
-      padding: 32px 16px 64px;
-    }
-
-    .shell {
-      max-width: 720px;
-      margin: 0 auto;
-    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+           font-size: 14px; color: var(--gray-9); background: var(--gray-1);
+           display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
     /* Header */
-    .header {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 32px;
-    }
+    .topbar { background: var(--blue); color: #fff; padding: 10px 16px;
+               display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+    .topbar h1 { font-size: 16px; font-weight: 600; }
+    .topbar p  { font-size: 12px; opacity: .75; }
 
-    .logo-mark {
-      width: 44px;
-      height: 44px;
-      background: var(--blue);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-    }
+    /* Layout */
+    .main { display: flex; flex: 1; overflow: hidden; }
 
-    .header-text h1 {
-      font-size: 20px;
-      font-weight: 600;
-      color: var(--gray-9);
-      letter-spacing: -.3px;
-    }
+    /* Sidebar tabs */
+    .sidebar { width: 140px; background: var(--gray-2); border-right: 1px solid var(--gray-3);
+                display: flex; flex-direction: column; flex-shrink: 0; }
+    .tab-btn { padding: 12px 14px; font-size: 13px; cursor: pointer; border: none;
+                background: none; text-align: left; color: var(--gray-5);
+                border-left: 3px solid transparent; transition: all .15s; }
+    .tab-btn:hover  { background: var(--gray-0); color: var(--gray-9); }
+    .tab-btn.active { background: var(--gray-0); color: var(--blue);
+                       border-left-color: var(--blue); font-weight: 600; }
 
-    .header-text p {
-      font-size: 13px;
-      color: var(--gray-5);
-      margin-top: 2px;
-    }
+    /* Content */
+    .content { flex: 1; overflow-y: auto; padding: 16px; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
 
-    /* Cards */
-    .card {
-      background: var(--gray-0);
-      border: 1px solid var(--gray-2);
-      border-radius: 12px;
-      padding: 24px;
-      margin-bottom: 16px;
-    }
+    /* Form grid */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .grid-4 { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .span-2 { grid-column: span 2; }
+    .mb { margin-bottom: 12px; }
 
-    .section-label {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--blue);
-      letter-spacing: .04em;
-      text-transform: uppercase;
-      margin-bottom: 18px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+    /* Fields */
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    .field label { font-size: 12px; font-weight: 600; color: var(--gray-5); text-transform: uppercase; letter-spacing: .04em; }
+    .field input, .field select, .field textarea {
+      border: 1px solid var(--gray-3); border-radius: var(--radius);
+      padding: 7px 10px; font-size: 13px; font-family: inherit;
+      background: var(--gray-0); color: var(--gray-9); width: 100%;
+      transition: border-color .15s; }
+    .field input:focus, .field select:focus, .field textarea:focus
+      { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,86,219,.1); }
+    .field textarea { resize: vertical; min-height: 60px; }
 
-    .section-label svg {
-      flex-shrink: 0;
-    }
+    /* Section heading */
+    .sec { font-size: 11px; font-weight: 700; color: var(--blue); text-transform: uppercase;
+            letter-spacing: .06em; margin: 16px 0 10px; border-bottom: 1px solid var(--gray-2); padding-bottom: 6px; }
 
-    /* Grid layouts */
-    .grid-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
+    /* Punto nav */
+    .pto-nav { display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
+                background: var(--gray-2); padding: 8px 12px; border-radius: var(--radius); }
+    .pto-nav button { padding: 4px 10px; border: 1px solid var(--gray-3); border-radius: 6px;
+                       background: var(--gray-0); cursor: pointer; font-size: 13px; }
+    .pto-nav button:hover { border-color: var(--blue); color: var(--blue); }
+    .pto-nav .lbl { font-weight: 600; font-size: 13px; flex: 1; }
+    .btn-add { background: var(--green) !important; color: #fff !important;
+                border-color: var(--green) !important; }
+    .btn-del { background: var(--red-lt) !important; color: var(--red) !important;
+                border-color: var(--red) !important; }
 
-    .grid-3 {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 14px;
-    }
+    /* Action bar */
+    .actions { flex-shrink: 0; background: var(--gray-0); border-top: 1px solid var(--gray-2);
+                padding: 10px 16px; display: flex; gap: 8px; }
+    .btn { padding: 9px 16px; border: none; border-radius: var(--radius); font-size: 13px;
+            font-weight: 600; cursor: pointer; transition: background .15s; white-space: nowrap; }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-primary:hover { background: var(--blue-dk); }
+    .btn-green { background: var(--green); color: #fff; }
+    .btn-green:hover { background: #166534; }
+    .btn-purple { background: #7c3aed; color: #fff; }
+    .btn-purple:hover { background: #6d28d9; }
+    .btn-teal { background: #0891b2; color: #fff; }
+    .btn-teal:hover { background: #0e7490; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
 
-    .grid-4 {
-      display: grid;
-      grid-template-columns: 2fr 1fr 1fr 1fr;
-      gap: 14px;
-    }
-
-    .span-2 {
-      grid-column: span 2;
-    }
-
-    @media (max-width: 580px) {
-
-      .grid-2,
-      .grid-3,
-      .grid-4 {
-        grid-template-columns: 1fr;
-      }
-
-      .span-2 {
-        grid-column: span 1;
-      }
-    }
-
-    /* Form fields */
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-
-    .field label {
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--gray-9);
-    }
-
-    .field label .req {
-      color: var(--blue);
-      margin-left: 2px;
-    }
-
-    .field input,
-    .field select,
-    .field textarea {
-      border: 1px solid var(--gray-3);
-      border-radius: var(--radius);
-      padding: 9px 12px;
-      font-size: 14px;
-      font-family: inherit;
-      color: var(--gray-9);
-      background: var(--gray-0);
-      transition: border-color .15s, box-shadow .15s;
-      width: 100%;
-    }
-
-    .field input:focus,
-    .field select:focus,
-    .field textarea:focus {
-      outline: none;
-      border-color: var(--blue);
-      box-shadow: 0 0 0 3px rgba(26, 86, 219, .12);
-    }
-
-    .field input.error,
-    .field select.error {
-      border-color: var(--red);
-    }
-
-    .field .err-msg {
-      font-size: 12px;
-      color: var(--red);
-      display: none;
-    }
-
-    .field .err-msg.show {
-      display: block;
-    }
-
-    .field textarea {
-      resize: vertical;
-      min-height: 72px;
-    }
-
-    .field select {
-      cursor: pointer;
-    }
-
-    /* Divider */
-    .divider {
-      border: none;
-      border-top: 1px solid var(--gray-2);
-      margin: 20px 0;
-    }
-
-    /* Punto card */
-    .punto-card {
-      background: var(--gray-0);
-      border: 1px solid var(--gray-2);
-      border-radius: 12px;
-      padding: 24px;
-      margin-bottom: 12px;
-      position: relative;
-    }
-
-    .punto-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 18px;
-    }
-
-    .punto-num {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--blue);
-      letter-spacing: .04em;
-      text-transform: uppercase;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .btn-remove {
-      background: none;
-      border: 1px solid var(--gray-3);
-      border-radius: 6px;
-      padding: 5px 10px;
-      font-size: 12px;
-      color: var(--gray-5);
-      cursor: pointer;
-      transition: all .15s;
-    }
-
-    .btn-remove:hover {
-      border-color: var(--red);
-      color: var(--red);
-      background: var(--red-lt);
-    }
-
-    /* Add punto */
-    .btn-add-punto {
-      width: 100%;
-      padding: 12px;
-      border: 2px dashed var(--gray-3);
-      border-radius: 12px;
-      background: none;
-      font-size: 14px;
-      color: var(--gray-5);
-      cursor: pointer;
-      transition: all .15s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      margin-bottom: 24px;
-    }
-
-    .btn-add-punto:hover {
-      border-color: var(--blue);
-      color: var(--blue);
-      background: var(--blue-lt);
-    }
-
-    /* Submit */
-    .btn-submit {
-      width: 100%;
-      padding: 14px;
-      background: var(--blue);
-      color: #fff;
-      border: none;
-      border-radius: var(--radius);
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background .15s;
-      letter-spacing: -.1px;
-    }
-
-    .btn-submit:hover {
-      background: var(--blue-dk);
-    }
-
-    .btn-submit:disabled {
-      background: var(--gray-3);
-      cursor: not-allowed;
-    }
-
-    /* Toast */
-    .toast {
-      display: none;
-      padding: 14px 18px;
-      border-radius: var(--radius);
-      font-size: 14px;
-      font-weight: 500;
-      margin-bottom: 16px;
-    }
-
-    .toast.ok {
-      background: var(--green-lt);
-      color: var(--green);
-      border: 1px solid #a7f3d0;
-      display: flex;
-    }
-
-    .toast.err {
-      background: var(--red-lt);
-      color: var(--red);
-      border: 1px solid #fca5a5;
-      display: flex;
-    }
+    /* Log */
+    .log-wrap { flex-shrink: 0; height: 140px; background: #1e1e1e; color: #d4d4d4;
+                 font-family: 'Consolas', monospace; font-size: 12px;
+                 overflow-y: auto; padding: 8px 12px; border-top: 1px solid #333; }
+    .log-wrap .ok  { color: #4ec94b; }
+    .log-wrap .err { color: #f48771; }
+    .log-wrap .info{ color: #9cdcfe; }
 
     /* Spinner */
-    .spinner {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 2px solid rgba(255, 255, 255, .4);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin .7s linear infinite;
-      margin-right: 8px;
-      vertical-align: middle;
-    }
+    .spin { display: inline-block; width: 12px; height: 12px;
+             border: 2px solid rgba(255,255,255,.4); border-top-color:#fff;
+             border-radius: 50%; animation: spin .6s linear infinite; vertical-align:middle; margin-right:6px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    .field-hint {
-      font-size: 11px;
-      color: var(--gray-5);
-    }
-
-    .field .char-count {
-      font-size: 11px;
-      color: var(--gray-5);
-      text-align: right;
-    }
-
-    .field .char-count.warn {
-      color: var(--red);
-    }
-
-    .field input.ok {
-      border-color: #22c55e;
-    }
+    /* Import textarea */
+    #txtImport { width:100%; height: calc(100vh - 280px); font-size:13px;
+                  font-family: 'Consolas', monospace; resize: none; }
   </style>
 </head>
-
 <body>
 
-  <div class="shell">
+<!-- Header -->
+<div class="topbar">
+  <div>
+    <h1>🤖 Unipase Bot</h1>
+    <p>Completá los datos y usá los botones para llenar el sistema</p>
+  </div>
+</div>
 
-    <!-- Header -->
-    <div class="header">
-      <div class="logo-mark">
-        <svg width="24" height="24" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24">
-          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-          <polyline points="9 22 9 12 15 12 15 22" />
-        </svg>
+<!-- Main -->
+<div class="main">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <button class="tab-btn active" onclick="showTab('empresa')">🏢 Empresa</button>
+    <button class="tab-btn" onclick="showTab('puntos')">📍 Puntos</button>
+    <button class="tab-btn" onclick="showTab('usuario')">👤 Usuario</button>
+    <button class="tab-btn" onclick="showTab('importar')">📋 Importar</button>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- ── EMPRESA ─────────────────────────────────────────────── -->
+    <div id="tab-empresa" class="tab-panel active">
+      <div class="sec">Datos principales</div>
+      <div class="grid-2">
+        <div class="field"><label>Nombre empresa *</label><input id="e_nombre_comercial" type="text" maxlength="200"></div>
+        <div class="field"><label>Razón Social</label><input id="e_razon_social" type="text" maxlength="300"></div>
       </div>
-      <div class="header-text">
-        <h1>Alta de empresa y puntos</h1>
-        <p>Completá los datos para que el equipo de Unipase procese el alta.</p>
+      <div class="grid-3">
+        <div class="field"><label>CUIT</label><input id="e_cuit" type="text" maxlength="11" placeholder="11 dígitos sin guiones"></div>
+        <div class="field"><label>Teléfono</label><input id="e_telefono" type="text" maxlength="20"></div>
+        <div class="field"><label>Email</label><input id="e_email" type="email" maxlength="100"></div>
+      </div>
+      <div class="grid-3 mb">
+        <div class="field"><label>CBU</label><input id="e_cbu" type="text" maxlength="22" placeholder="22 dígitos"></div>
+        <div class="field"><label>Comisión $</label><input id="e_comision" type="number" min="0" step="0.01" placeholder="0.00"></div>
+        <div class="field"><label>Prefijo Remito</label><input id="e_prefijo_remito" type="text" maxlength="20"></div>
+      </div>
+
+      <div class="sec">Domicilio</div>
+      <div class="grid-4">
+        <div class="field"><label>Calle</label><input id="e_calle" type="text" maxlength="200"></div>
+        <div class="field"><label>Número</label><input id="e_numero" type="number" min="0"></div>
+        <div class="field"><label>Piso</label><input id="e_piso" type="text" maxlength="10"></div>
+        <div class="field"><label>Dpto</label><input id="e_departamento" type="text" maxlength="12"></div>
+      </div>
+      <div class="grid-3 mb">
+        <div class="field"><label>Localidad</label><input id="e_localidad" type="text" maxlength="50"></div>
+        <div class="field"><label>Provincia</label><input id="e_provincia" type="text" maxlength="100"></div>
+        <div class="field"><label>Cód. Postal</label><input id="e_codigo_postal" type="text" maxlength="16"></div>
+      </div>
+
+      <div class="sec">Administración</div>
+      <div class="grid-2 mb">
+        <div class="field"><label>Responsable</label><input id="e_responsable" type="text" maxlength="200"></div>
+        <div class="field"><label>Controladora</label>
+          <select id="e_controladora">
+            <option value="">— Seleccionar —</option>
+            <option>BUTERA</option><option>EZEQUIEL_EMPRESA</option>
+            <option>FRANCISCO_EMPRESA</option><option>GMEYER_EMPRESA</option>
+            <option>LFERNANDEZ_EMPRESA</option><option>MANAGEMENT SOLUTIONS</option>
+            <option>MAXIMO_EMPRESA</option><option>NADIA_EMPRESA</option>
+            <option>OPEN25</option><option>OROMI EZEQUIEL</option>
+            <option>UNIPASE</option><option>VANESA_EMPRESA</option>
+            <option>YAMILA_EMPRESA</option>
+          </select>
+        </div>
       </div>
     </div>
 
-    <!-- Toast -->
-    <div class="toast" id="toast"></div>
-
-    <form id="mainForm" novalidate>
-
-      <!-- ── EMPRESA ──────────────────────────────────────────────── -->
-      <div class="card">
-        <div class="section-label">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <rect x="2" y="7" width="20" height="14" rx="2" />
-            <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" />
-          </svg>
-          Datos de la empresa
-        </div>
-
-        <div class="grid-2" style="margin-bottom:14px">
-          <div class="field">
-            <label>Razón social <span class="req">*</span></label>
-            <input type="text" name="razon_social" maxlength="300" placeholder="Ej: Transportes del Sur S.A." required
-              oninput="validarTexto(this,300)">
-            <span class="err-msg">Campo obligatorio</span>
-          </div>
-          <div class="field">
-            <label>Nombre empresa</label>
-            <input type="text" name="nombre_comercial" maxlength="200" placeholder="Ej: Transportes del Sur"
-              oninput="validarTexto(this,200)">
-          </div>
-        </div>
-
-        <div class="grid-3" style="margin-bottom:14px">
-          <div class="field">
-            <label>CUIT <span class="req">*</span></label>
-            <input type="text" name="cuit" maxlength="11" placeholder="Solo números, sin guiones" required
-              oninput="validarSoloNumeros(this,11)" inputmode="numeric">
-            <span class="field-hint">11 dígitos sin guiones. Ej: 30123456789</span>
-            <span class="err-msg">Ingresá el CUIT (11 dígitos, solo números)</span>
-          </div>
-          <div class="field">
-            <label>Teléfono fijo</label>
-            <input type="tel" name="telefono_empresa" maxlength="20" placeholder="Solo números. Ej: 1147321124"
-              oninput="validarTelefono(this)">
-            <span class="field-hint">Sin 0 ni 15 adelante, sin guiones</span>
-          </div>
-          <div class="field">
-            <label>Email de la empresa</label>
-            <input type="email" name="email_empresa" maxlength="100" placeholder="contacto@empresa.com"
-              oninput="validarEmail(this)">
-            <span class="err-msg">Email no válido</span>
-          </div>
-        </div>
-
-        <div class="grid-3" style="margin-bottom:14px">
-          <div class="field">
-            <label>CBU</label>
-            <input type="text" name="cbu" maxlength="22" placeholder="22 dígitos, sin espacios"
-              oninput="validarSoloNumeros(this,22)" inputmode="numeric">
-            <span class="field-hint">Exactamente 22 dígitos</span>
-            <span class="err-msg">El CBU debe tener exactamente 22 dígitos</span>
-          </div>
-          <div class="field">
-            <label>Comisión $</label>
-            <input type="number" name="comision" min="0" step="0.01" placeholder="0.00">
-          </div>
-          <div class="field" style="visibility:hidden"></div>
-        </div>
-
-        <hr class="divider">
-
-        <div class="section-label"
-          style="margin-bottom:14px; font-size:11px; color:var(--gray-5); text-transform:none; letter-spacing:0; font-weight:500;">
-          Domicilio legal
-        </div>
-
-        <div class="grid-4" style="margin-bottom:14px">
-          <div class="field">
-            <label>Calle <span class="req">*</span></label>
-            <input type="text" name="calle_empresa" maxlength="200" placeholder="Ej: Av. San Martín" required
-              oninput="validarTexto(this,200)">
-            <span class="err-msg">Ingresá la calle</span>
-          </div>
-          <div class="field">
-            <label>Número</label>
-            <input type="number" name="numero_empresa" placeholder="Ej: 1450" min="0" max="99999">
-          </div>
-          <div class="field">
-            <label>Piso</label>
-            <input type="text" name="piso_empresa" maxlength="10" placeholder="Ej: 3">
-          </div>
-          <div class="field">
-            <label>Dpto</label>
-            <input type="text" name="dpto_empresa" maxlength="12" placeholder="Ej: B">
-          </div>
-        </div>
-
-        <div class="grid-3" style="margin-bottom:14px">
-          <div class="field">
-            <label>Localidad <span class="req">*</span></label>
-            <input type="text" name="localidad_empresa" maxlength="50" placeholder="Ej: Junín" required
-              oninput="validarTexto(this,50)">
-            <span class="err-msg">Ingresá la localidad</span>
-          </div>
-          <div class="field">
-            <label>Provincia</label>
-            <select name="provincia_empresa">
-              <option value="">— Seleccionar —</option>
-              <option>Buenos Aires</option>
-              <option>CABA</option>
-              <option>Catamarca</option>
-              <option>Chaco</option>
-              <option>Chubut</option>
-              <option>Córdoba</option>
-              <option>Corrientes</option>
-              <option>Entre Ríos</option>
-              <option>Formosa</option>
-              <option>Jujuy</option>
-              <option>La Pampa</option>
-              <option>La Rioja</option>
-              <option>Mendoza</option>
-              <option>Misiones</option>
-              <option>Neuquén</option>
-              <option>Río Negro</option>
-              <option>Salta</option>
-              <option>San Juan</option>
-              <option>San Luis</option>
-              <option>Santa Cruz</option>
-              <option>Santa Fe</option>
-              <option>Santiago del Estero</option>
-              <option>Tierra del Fuego</option>
-              <option>Tucumán</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Código postal</label>
-            <input type="text" name="cp_empresa" maxlength="16" placeholder="Ej: 6000"
-              oninput="validarSoloNumeros(this,16)" inputmode="numeric">
-          </div>
-        </div>
-
-        <div class="grid-2" style="margin-top:14px">
-          <div class="field">
-            <label>Responsable a cargo</label>
-            <input type="text" name="responsable_empresa" maxlength="200" placeholder="Nombre completo">
-          </div>
-          <div class="field">
-            <label>Controladora</label>
-            <select name="controladora">
-              <option value="">— Seleccionar —</option>
-              <option>BUTERA</option>
-              <option>EZEQUIEL_EMPRESA</option>
-              <option>FRANCISCO_EMPRESA</option>
-              <option>GMEYER_EMPRESA</option>
-              <option>LFERNANDEZ_EMPRESA</option>
-              <option>MANAGEMENT SOLUTIONS</option>
-              <option>MAXIMO_EMPRESA</option>
-              <option>NADIA_EMPRESA</option>
-              <option>OPEN25</option>
-              <option>OROMI EZEQUIEL</option>
-              <option>UNIPASE</option>
-              <option>VANESA_EMPRESA</option>
-              <option>YAMILA_EMPRESA</option>
-            </select>
-          </div>
-        </div>
-
+    <!-- ── PUNTOS ──────────────────────────────────────────────── -->
+    <div id="tab-puntos" class="tab-panel">
+      <div class="pto-nav">
+        <button onclick="ptoPrev()">◀</button>
+        <span class="lbl" id="ptoLabel">Punto 1 de 1</span>
+        <button onclick="ptoNext()">▶</button>
+        <button class="btn-add" onclick="ptoNuevo()">➕ Nuevo</button>
+        <button class="btn-del" onclick="ptoEliminar()">🗑</button>
       </div>
 
-      <!-- ── PUNTOS ────────────────────────────────────────────────── -->
-      <div id="puntos-container"></div>
+      <div class="grid-2">
+        <div class="field"><label>Empresa (para el punto)</label><input id="p_empresa" type="text" maxlength="200"></div>
+        <div class="field"><label>Nombre del punto *</label><input id="p_nombre_comercial" type="text" maxlength="200"></div>
+      </div>
+      <div class="grid-3 mb">
+        <div class="field"><label>Email</label><input id="p_email" type="email" maxlength="200"></div>
+        <div class="field"><label>Teléfono</label><input id="p_telefono" type="text" maxlength="20"></div>
+        <div class="field"><label>Responsable</label><input id="p_responsable" type="text" maxlength="200"></div>
+      </div>
+      <div class="field mb">
+        <label>Ocupación</label>
+        <select id="p_ocupacion">
+          <option value="">— Seleccionar —</option>
+          <option>ACCESORIOS</option><option>AUTOMOTRIZ</option><option>AUTORADIO/ALARMAS</option>
+          <option>BATERIAS</option><option>CERRAJERIA</option><option>COMERCIO PARADOR</option>
+          <option>CONSECIONARIA</option><option>CRISTALEROS</option><option>DRUGSTORE</option>
+          <option>ESTACION DE SERVICIO</option><option>ESTACIONAMIENTO</option><option>FERRETERIA</option>
+          <option>GARAGE</option><option>GOMERIA</option><option>KIOSKO</option>
+          <option>LAVADERO</option><option>LUBRICENTRO</option><option>MOTOS</option>
+          <option>PUNTOS DIRECTOS</option><option>RAPIPAGO</option><option>REPUESTOS</option>
+          <option>SEGUROS</option><option>TALLER</option><option>TERECEROS</option>
+          <option>TRANSPORTE</option>
+        </select>
+      </div>
 
-      <button type="button" class="btn-add-punto" onclick="agregarPunto()">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <line x1="12" y1="5" x2="12" y2="19" />
-          <line x1="5" y1="12" x2="19" y2="12" />
-        </svg>
-        Agregar punto de colocación
-      </button>
+      <div class="sec">Domicilio del punto</div>
+      <div class="grid-4">
+        <div class="field"><label>Calle</label><input id="p_calle" type="text" maxlength="200"></div>
+        <div class="field"><label>Número</label><input id="p_numero" type="number" min="0"></div>
+        <div class="field"><label>Piso</label><input id="p_piso" type="text" maxlength="10"></div>
+        <div class="field"><label>Dpto</label><input id="p_departamento" type="text" maxlength="12"></div>
+      </div>
+      <div class="grid-3 mb">
+        <div class="field"><label>Localidad</label><input id="p_localidad" type="text" maxlength="200"></div>
+        <div class="field"><label>Provincia</label><input id="p_provincia" type="text" maxlength="200"></div>
+        <div class="field"><label>Cód. Postal</label><input id="p_codigo_postal" type="text" maxlength="16"></div>
+      </div>
 
-      <!-- Submit -->
-      <div class="toast" id="toast2"></div>
-      <button type="submit" class="btn-submit" id="btnSubmit">Enviar datos</button>
+      <div class="sec">Web</div>
+      <div class="grid-2">
+        <div class="field"><label>Nombre Web</label><input id="p_nombre_web" type="text" maxlength="200"></div>
+        <div class="field"><label>Coordenadas GPS</label><input id="p_coordenadas" type="text" maxlength="200"></div>
+      </div>
+      <div class="field mb">
+        <label>Horarios</label>
+        <textarea id="p_horarios" maxlength="440"></textarea>
+      </div>
+    </div>
 
-    </form>
+    <!-- ── USUARIO ─────────────────────────────────────────────── -->
+    <div id="tab-usuario" class="tab-panel">
+      <div class="sec">Datos del usuario</div>
+      <div class="grid-2">
+        <div class="field"><label>Apellido *</label><input id="u_apellido" type="text" maxlength="200"></div>
+        <div class="field"><label>Nombre *</label><input id="u_nombre_usu" type="text" maxlength="200"></div>
+      </div>
+      <div class="grid-2 mb">
+        <div class="field"><label>Email</label><input id="u_email" type="email" maxlength="100"></div>
+        <div class="field"><label>Nombre usuario *</label><input id="u_nombre_usuario" type="text" maxlength="50" placeholder="Ej: jperez o el email"></div>
+      </div>
+
+      <div class="sec">Vínculos (se llenan solos desde Empresa y Punto activo)</div>
+      <div class="grid-2 mb">
+        <div class="field"><label>Empresa</label><input id="u_empresa" type="text" maxlength="200"></div>
+        <div class="field"><label>Punto de Colocación</label><input id="u_punto" type="text" maxlength="200"></div>
+      </div>
+
+      <div class="sec">Datos para enviar al cliente</div>
+      <div class="grid-3 mb">
+        <div class="field"><label>Password inicial</label>
+          <input id="u_password" type="text" placeholder="Ej: Itati2026" maxlength="50">
+        </div>
+        <div class="field"><label>ID Punto</label>
+          <input id="u_idpunto" type="text" placeholder="Ej: 6607" maxlength="10">
+        </div>
+        <div class="field" style="display:flex;align-items:flex-end;">
+          <button class="btn btn-purple" style="width:100%;padding:8px;" onclick="generarResumen()">
+            📧 Generar resumen
+          </button>
+        </div>
+      </div>
+
+      <!-- Resumen generado -->
+      <div id="resumenWrap" style="display:none;">
+        <div class="sec">Resumen para enviar</div>
+        <div style="position:relative;">
+          <textarea id="resumenTxt" rows="6" readonly
+            style="width:100%;font-family:monospace;font-size:13px;
+                   background:#f8f9fb;border:1px solid #d4d8e1;
+                   border-radius:8px;padding:12px;resize:none;color:#111827;">
+          </textarea>
+          <button onclick="copiarResumen()" id="btnCopiar"
+            style="position:absolute;top:8px;right:8px;padding:4px 10px;
+                   font-size:12px;background:#1a56db;color:#fff;
+                   border:none;border-radius:6px;cursor:pointer;">
+            Copiar
+          </button>
+        </div>
+      </div>
+
+      <p style="font-size:12px;color:var(--gray-5);margin-top:12px;">
+        💡 El ID Usuario, Código Web, Ver Mensaje Sistema y Es Activo los completa el sistema automáticamente.
+      </p>
+    </div>
+
+    <!-- ── IMPORTAR ────────────────────────────────────────────── -->
+    <div id="tab-importar" class="tab-panel">
+      <div class="sec">Pegá el texto del mail</div>
+      <textarea id="txtImport" placeholder="Pegá acá el texto del mail con los datos del cliente..."></textarea>
+    </div>
+
   </div>
+</div>
 
-  <script>
-    // ── EmailJS config ─────────────────────────────────────────
-    // REEMPLAZÁ estos valores con los tuyos de emailjs.com
-    const EMAILJS_PUBLIC_KEY = "TgDZVKqIJb5Hj7Ypx";
-    const EMAILJS_SERVICE_ID = "service_njfi4cw";
-    const EMAILJS_TEMPLATE_ID = "template_nssn7ro";
-    const DESTINO_EMAIL = "gustavo.rizzo@unipase.com";
+<!-- Action bar -->
+<div class="actions">
+  <button class="btn btn-primary" id="btnEmpresa" onclick="llenar('empresa')">🏢 Llenar Empresa</button>
+  <button class="btn btn-green"   id="btnPunto"   onclick="llenar('punto')">📍 Llenar Punto 1/1</button>
+  <button class="btn btn-teal"    id="btnUsuario" onclick="llenar('usuario')">👤 Llenar Usuario</button>
+  <button class="btn btn-purple"  id="btnImportar" onclick="importar()">📥 Importar texto</button>
+</div>
 
-    emailjs.init(EMAILJS_PUBLIC_KEY);
+<!-- Log -->
+<div class="log-wrap" id="logBox"></div>
 
-    // ── Puntos ─────────────────────────────────────────────────
-    let puntoCount = 0;
+<script>
+// ── Estado ────────────────────────────────────────────────────────
+let puntos    = [{}];
+let ptoEdIdx  = 0;   // índice editando
+let ptoFillIdx= 0;   // índice del próximo a llenar
 
-    function agregarPunto() {
-      puntoCount++;
-      const id = puntoCount;
-      const container = document.getElementById("puntos-container");
+// ── Tabs ──────────────────────────────────────────────────────────
+function showTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    if (b.textContent.toLowerCase().includes(name === 'importar' ? 'importar' : name === 'empresa' ? 'empresa' : name === 'puntos' ? 'punto' : 'usuario'))
+      b.classList.add('active');
+  });
+}
 
-      const div = document.createElement("div");
-      div.className = "punto-card";
-      div.id = `punto-${id}`;
-      div.innerHTML = `
-      <div class="punto-header">
-        <span class="punto-num">
-          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          Punto de colocación ${id}
-        </span>
-        ${id > 1 ? `<button type="button" class="btn-remove" onclick="eliminarPunto(${id})">Eliminar</button>` : ''}
-      </div>
+// ── Log ───────────────────────────────────────────────────────────
+function addLog(lines) {
+  const box = document.getElementById('logBox');
+  lines.forEach(line => {
+    const div = document.createElement('div');
+    div.className = line.startsWith('✅') ? 'ok' : line.startsWith('❌') || line.startsWith('⚠️') ? 'err' : 'info';
+    div.textContent = line;
+    box.appendChild(div);
+  });
+  box.scrollTop = box.scrollHeight;
+}
+function logSep(title) {
+  const box = document.getElementById('logBox');
+  const div = document.createElement('div');
+  div.style.cssText = 'color:#569cd6;margin-top:6px;';
+  div.textContent = `── ${title} ──────────────────`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
 
-      <div class="grid-2" style="margin-bottom:14px">
-        <div class="field">
-          <label>Nombre del punto <span class="req">*</span></label>
-          <input type="text" name="p${id}_nombre" maxlength="200"
-                 placeholder="Ej: Sucursal Centro" required
-                 oninput="validarTexto(this,200)">
-          <span class="err-msg">Campo obligatorio</span>
-        </div>
-        <div class="field">
-          <label>Responsable</label>
-          <input type="text" name="p${id}_responsable" maxlength="200"
-                 placeholder="Ej: María García"
-                 oninput="validarTexto(this,200)">
-        </div>
-      </div>
+// ── Empresa getters/setters ───────────────────────────────────────
+const EMP_FIELDS = ['nombre_comercial','razon_social','cuit','telefono','email','cbu',
+  'comision','prefijo_remito','calle','numero','piso','departamento','localidad',
+  'provincia','codigo_postal','responsable','controladora'];
 
-      <div class="grid-3" style="margin-bottom:14px">
-        <div class="field">
-          <label>Email</label>
-          <input type="email" name="p${id}_email" maxlength="200"
-                 placeholder="responsable@email.com"
-                 oninput="validarEmail(this)">
-          <span class="err-msg">Email no válido</span>
-        </div>
-        <div class="field">
-          <label>Teléfono</label>
-          <input type="tel" name="p${id}_telefono" maxlength="20"
-                 placeholder="Ej: 2317484976"
-                 oninput="validarTelefono(this)">
-          <span class="field-hint">Sin 0 ni 15 adelante, sin guiones</span>
-        </div>
-        <div class="field">
-          <label>Ocupación / Rubro</label>
-          <select name="p${id}_ocupacion">
-            <option value="">— Seleccionar —</option>
-            <option>ACCESORIOS</option>
-            <option>AUTOMOTRIZ</option>
-            <option>AUTORADIO/ALARMAS</option>
-            <option>BATERIAS</option>
-            <option>CERRAJERIA</option>
-            <option>COMERCIO PARADOR</option>
-            <option>CONSECIONARIA</option>
-            <option>CRISTALEROS</option>
-            <option>DRUGSTORE</option>
-            <option>ESTACION DE SERVICIO</option>
-            <option>ESTACIONAMIENTO</option>
-            <option>FERRETERIA</option>
-            <option>GARAGE</option>
-            <option>GOMERIA</option>
-            <option>KIOSKO</option>
-            <option>LAVADERO</option>
-            <option>LUBRICENTRO</option>
-            <option>MOTOS</option>
-            <option>PUNTOS DIRECTOS</option>
-            <option>RAPIPAGO</option>
-            <option>REPUESTOS</option>
-            <option>SEGUROS</option>
-            <option>TALLER</option>
-            <option>TERECEROS</option>
-            <option>TRANSPORTE</option>
-          </select>
-        </div>
-      </div>
+function getEmpresa() {
+  const d = {};
+  EMP_FIELDS.forEach(k => {
+    const el = document.getElementById('e_'+k);
+    d[k] = el ? el.value : '';
+  });
+  return d;
+}
+function setEmpresa(d) {
+  EMP_FIELDS.forEach(k => {
+    const el = document.getElementById('e_'+k);
+    if (el) el.value = d[k] || '';
+  });
+}
 
-      <div style="font-size:12px;font-weight:500;color:var(--gray-5);margin-bottom:12px;">Domicilio del punto</div>
+// ── Punto getters/setters ─────────────────────────────────────────
+const PTO_FIELDS = ['empresa','nombre_comercial','email','telefono','responsable','ocupacion',
+  'calle','numero','piso','departamento','localidad','provincia','codigo_postal',
+  'nombre_web','coordenadas','horarios'];
 
-      <div class="grid-4" style="margin-bottom:14px">
-        <div class="field">
-          <label>Calle <span class="req">*</span></label>
-          <input type="text" name="p${id}_calle" maxlength="200"
-                 placeholder="Ej: Av. Pellegrini" required
-                 oninput="validarTexto(this,200)">
-          <span class="err-msg">Ingresá la calle</span>
-        </div>
-        <div class="field">
-          <label>Número</label>
-          <input type="number" name="p${id}_numero" placeholder="Ej: 1208" min="0" max="99999">
-        </div>
-        <div class="field">
-          <label>Piso</label>
-          <input type="text" name="p${id}_piso" maxlength="10" placeholder="Ej: 1">
-        </div>
-        <div class="field">
-          <label>Dpto</label>
-          <input type="text" name="p${id}_dpto" maxlength="12" placeholder="Ej: A">
-        </div>
-      </div>
+function getPto() {
+  const d = {};
+  PTO_FIELDS.forEach(k => {
+    const el = document.getElementById('p_'+k);
+    d[k] = el ? el.value : '';
+  });
+  return d;
+}
+function setPto(d) {
+  PTO_FIELDS.forEach(k => {
+    const el = document.getElementById('p_'+k);
+    if (el) el.value = d[k] || '';
+  });
+}
+function guardarPto() {
+  if (puntos.length && ptoEdIdx < puntos.length)
+    puntos[ptoEdIdx] = getPto();
+}
+function cargarPto(idx) {
+  ptoEdIdx = idx;
+  setPto(puntos[idx] || {});
+  actualizarNavPto();
+}
+function actualizarNavPto() {
+  const n = puntos.length;
+  document.getElementById('ptoLabel').textContent = `Punto ${ptoEdIdx+1} de ${n}`;
+  const fi = ptoFillIdx >= n ? n : ptoFillIdx;
+  document.getElementById('btnPunto').textContent = `📍 Llenar Punto ${fi+1}/${n}`;
+}
+function ptoPrev() { guardarPto(); if (ptoEdIdx>0) cargarPto(ptoEdIdx-1); }
+function ptoNext() { guardarPto(); if (ptoEdIdx<puntos.length-1) cargarPto(ptoEdIdx+1); }
+function ptoNuevo() {
+  guardarPto();
+  const emp = document.getElementById('e_nombre_comercial').value ||
+              document.getElementById('e_razon_social').value || '';
+  puntos.push({ empresa: emp });
+  ptoFillIdx = Math.min(ptoFillIdx, puntos.length-1);
+  cargarPto(puntos.length-1);
+}
+function ptoEliminar() {
+  if (puntos.length<=1) return alert('Debe haber al menos un punto.');
+  puntos.splice(ptoEdIdx,1);
+  ptoFillIdx = Math.min(ptoFillIdx, puntos.length-1);
+  cargarPto(Math.min(ptoEdIdx, puntos.length-1));
+}
 
-      <div class="grid-3" style="margin-bottom:14px">
-        <div class="field">
-          <label>Localidad</label>
-          <input type="text" name="p${id}_localidad" maxlength="200"
-                 placeholder="Ej: 9 de Julio"
-                 oninput="validarTexto(this,200)">
-        </div>
-        <div class="field">
-          <label>Provincia</label>
-          <select name="p${id}_provincia">
-            <option value="">— Seleccionar —</option>
-            <option>Buenos Aires</option><option>CABA</option>
-            <option>Catamarca</option><option>Chaco</option>
-            <option>Chubut</option><option>Córdoba</option>
-            <option>Corrientes</option><option>Entre Ríos</option>
-            <option>Formosa</option><option>Jujuy</option>
-            <option>La Pampa</option><option>La Rioja</option>
-            <option>Mendoza</option><option>Misiones</option>
-            <option>Neuquén</option><option>Río Negro</option>
-            <option>Salta</option><option>San Juan</option>
-            <option>San Luis</option><option>Santa Cruz</option>
-            <option>Santa Fe</option><option>Santiago del Estero</option>
-            <option>Tierra del Fuego</option><option>Tucumán</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Código postal</label>
-          <input type="text" name="p${id}_cp" maxlength="16" placeholder="Ej: 6500" oninput="validarSoloNumeros(this,16)" inputmode="numeric">
-        </div>
-      </div>
+// ── Usuario getters/setters ───────────────────────────────────────
+const USR_FIELDS = ['apellido','nombre_usu','email','nombre_usuario','empresa','punto'];
+function getUsuario() {
+  const d = {};
+  USR_FIELDS.forEach(k => {
+    const el = document.getElementById('u_'+k);
+    d[k] = el ? el.value : '';
+  });
+  return d;
+}
+function setUsuario(d) {
+  USR_FIELDS.forEach(k => {
+    const el = document.getElementById('u_'+k);
+    if (el) el.value = d[k] || '';
+  });
+}
 
-      <div style="font-size:12px;font-weight:500;color:var(--gray-5);margin-bottom:12px;">Datos web</div>
+// Auto-fill usuario from empresa + punto
+function autoFillUsuario() {
+  const emp = getEmpresa();
+  guardarPto();
+  const pto = puntos[ptoFillIdx] || puntos[0] || {};
+  const resp = pto.responsable || '';
+  const parts = resp.trim().split(/\s+/);
+  const apellido = parts.length > 1 ? parts.slice(1).join(' ') : resp;
+  const nombre   = parts.length > 1 ? parts[0] : '';
+  setUsuario({
+    apellido,
+    nombre_usu:     nombre,
+    email:          pto.email || emp.email || '',
+    empresa:        emp.nombre_comercial || emp.razon_social || '',
+    punto:          pto.nombre_comercial || '',
+    nombre_usuario: (pto.email || '').split('@')[0] || '',
+  });
+}
 
-      <div class="grid-2" style="margin-bottom:14px">
-        <div class="field">
-          <label>Nombre web</label>
-          <input type="text" name="p${id}_nombre_web" maxlength="200" placeholder="Como aparece en el sistema web">
-        </div>
-        <div class="field">
-          <label>Coordenadas GPS</label>
-          <input type="text" name="p${id}_coords" maxlength="200" placeholder="Ej: -34.6037, -58.3816">
-        </div>
-      </div>
+// ── Importar ──────────────────────────────────────────────────────
+async function importar() {
+  const texto = document.getElementById('txtImport').value.trim();
+  if (!texto) return alert('Pegá el texto del mail primero.');
 
-      <div class="field">
-        <label>Horarios de atención</label>
-        <textarea name="p${id}_horarios" maxlength="440" placeholder="Ej: Lunes a viernes de 9 a 18 hs, sábados de 9 a 13 hs"></textarea>
-      </div>
-    `;
-      container.appendChild(div);
+  const r = await fetch('/api/importar', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ texto })
+  });
+  const data = await r.json();
+
+  setEmpresa(data.empresa);
+  const emp_nombre = data.empresa.nombre_comercial || data.empresa.razon_social || '';
+  puntos = data.puntos.length ? data.puntos.map(p => ({ ...p, empresa: p.empresa || emp_nombre })) : [{ empresa: emp_nombre }];
+  ptoFillIdx = 0;
+  cargarPto(0);
+  autoFillUsuario();
+
+  logSep('Importado');
+  addLog([`✅ Empresa: ${data.empresa.razon_social || data.empresa.nombre_comercial}`]);
+  addLog([`✅ ${puntos.length} punto(s) importado(s)`]);
+  showTab('empresa');
+}
+
+// ── Llenar ────────────────────────────────────────────────────────
+async function llenar(accion) {
+  let datos;
+  if (accion === 'empresa') {
+    datos = getEmpresa();
+  } else if (accion === 'punto') {
+    guardarPto();
+    if (ptoFillIdx >= puntos.length) {
+      addLog(['✅ Ya se llenaron todos los puntos. Pegá texto nuevo para reiniciar.']);
+      return;
     }
+    datos = puntos[ptoFillIdx];
+  } else if (accion === 'usuario') {
+    datos = getUsuario();
+  }
 
-    function eliminarPunto(id) {
-      const el = document.getElementById(`punto-${id}`);
-      if (el) el.remove();
-    }
+  const btnMap = { empresa:'btnEmpresa', punto:'btnPunto', usuario:'btnUsuario' };
+  const btn = document.getElementById(btnMap[accion]);
+  const origText = btn.textContent;
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spin"></span> Llenando...`;
 
-    // ── Formato del mail (exactamente como lo lee el bot) ───────
-    function armarTexto(data) {
-      const v = (name) => (data[name] || "").trim();
+  const label = accion === 'punto' ? `Punto ${ptoFillIdx+1}/${puntos.length}` : accion.charAt(0).toUpperCase()+accion.slice(1);
+  logSep(label);
 
-      let txt = `───────────────────────────────\n`;
-      txt += `📋 DATOS DE LA EMPRESA\n`;
-      txt += `───────────────────────────────\n`;
-      txt += `Razón Social: ${v("razon_social")}\n`;
-      if (v("nombre_comercial")) txt += `Nombre comercial: ${v("nombre_comercial")}\n`;
-      txt += `CUIT: ${v("cuit")}\n`;
-      if (v("telefono_empresa")) txt += `Teléfono fijo: ${v("telefono_empresa")}\n`;
-      if (v("email_empresa")) txt += `Email: ${v("email_empresa")}\n`;
-      if (v("cbu")) txt += `CBU: ${v("cbu")}\n`;
-      if (v("comision")) txt += `Comisión: $${v("comision")}\n`;
-      txt += `\nDomicilio legal:\n`;
-      txt += `  Calle: ${v("calle_empresa")}\n`;
-      txt += `  Número: ${v("numero_empresa")}\n`;
-      txt += `  Piso: ${v("piso_empresa")}\n`;
-      txt += `  Departamento: ${v("dpto_empresa")}\n`;
-      txt += `  Localidad: ${v("localidad_empresa")}\n`;
-      txt += `  Provincia: ${v("provincia_empresa")}\n`;
-      txt += `  Código Postal: ${v("cp_empresa")}\n`;
-      if (v("responsable_empresa")) txt += `\nResponsable a cargo: ${v("responsable_empresa")}\n`;
-      if (v("controladora")) txt += `Controladora: ${v("controladora")}\n`;
-
-      // Puntos
-      const cards = document.querySelectorAll(".punto-card");
-      if (cards.length > 0) {
-        txt += `\n───────────────────────────────\n`;
-        txt += `📍 DATOS DEL PUNTO DE COLOCACIÓN\n`;
-        txt += `───────────────────────────────\n`;
-      }
-
-      cards.forEach((card, idx) => {
-        const id = card.id.replace("punto-", "");
-        const p = (name) => (data[`p${id}_${name}`] || "").trim();
-        txt += `\n${idx + 1}-\n`;
-        txt += `Nombre del punto: ${p("nombre")}\n`;
-        if (p("email")) txt += `Email: ${p("email")}\n`;
-        if (p("telefono")) txt += `Teléfono: ${p("telefono")}\n`;
-        if (p("responsable")) txt += `Responsable: ${p("responsable")}\n`;
-        if (p("ocupacion")) txt += `Ocupación / Rubro: ${p("ocupacion")}\n`;
-        txt += `\nDomicilio del punto:\n`;
-        txt += `  Calle: ${p("calle")}\n`;
-        txt += `  Número: ${p("numero")}\n`;
-        txt += `  Piso: ${p("piso")}\n`;
-        txt += `  Departamento: ${p("dpto")}\n`;
-        txt += `  Localidad: ${p("localidad")}\n`;
-        txt += `  Provincia: ${p("provincia")}\n`;
-        txt += `  Código Postal: ${p("cp")}\n`;
-        if (p("horarios") || p("nombre_web") || p("coords")) {
-          txt += `\nDatos web:\n`;
-          if (p("nombre_web")) txt += `  Nombre web: ${p("nombre_web")}\n`;
-          if (p("horarios")) txt += `  Horarios de atención: ${p("horarios")}\n`;
-          if (p("coords")) txt += `  Coordenadas GPS: ${p("coords")}\n`;
-        }
-        if (idx < cards.length - 1) txt += `\n---\n`;
-      });
-
-      return txt;
-    }
-
-    // ── Validación ─────────────────────────────────────────────
-    function validar(form) {
-      let ok = true;
-      form.querySelectorAll("[required]").forEach(el => {
-        const msg = el.nextElementSibling;
-        if (!el.value.trim()) {
-          el.classList.add("error");
-          if (msg && msg.classList.contains("err-msg")) msg.classList.add("show");
-          ok = false;
-        } else {
-          el.classList.remove("error");
-          if (msg && msg.classList.contains("err-msg")) msg.classList.remove("show");
-        }
-      });
-      return ok;
-    }
-
-    // ── Submit ─────────────────────────────────────────────────
-    document.getElementById("mainForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      if (!validarTodo(e.target)) {
-        showToast("Completá los campos obligatorios marcados con *", "err");
-        return;
-      }
-
-      const btn = document.getElementById("btnSubmit");
-      btn.disabled = true;
-      btn.innerHTML = `<span class="spinner"></span> Enviando...`;
-
-      const formData = Object.fromEntries(new FormData(e.target));
-      const cuerpo = armarTexto(formData);
-      const empresa = (formData["nombre_comercial"] || formData["razon_social"] || "").trim();
-
-      try {
-        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-          to_email: DESTINO_EMAIL,
-          empresa: empresa,
-          cuerpo: cuerpo,
-        });
-
-        showToast("✓ Datos enviados correctamente. El equipo de Unipase procesará el alta a la brevedad.", "ok");
-        e.target.reset();
-        document.getElementById("puntos-container").innerHTML = "";
-        puntoCount = 0;
-        agregarPunto();
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      } catch (err) {
-        console.error(err);
-        showToast("No se pudo enviar. Intentá de nuevo o contactá a tu encargado de cuenta.", "err");
-      } finally {
-        btn.disabled = false;
-        btn.textContent = "Enviar datos";
-      }
+  try {
+    const r = await fetch('/api/llenar', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ accion, datos })
     });
+    const data = await r.json();
+    addLog(data.log);
 
-    function showToast(msg, type) {
-      const t = document.getElementById("toast");
-      t.textContent = msg;
-      t.className = `toast ${type}`;
-      t.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    if (data.ok && accion === 'punto') {
+      ptoFillIdx++;
+      actualizarNavPto();
+      // Auto-fill usuario para el siguiente
+      autoFillUsuario();
     }
+  } catch (e) {
+    addLog([`❌ Error de red: ${e.message}`]);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = origText;
+    if (accion === 'punto') actualizarNavPto();
+  }
+}
 
-    // ── Funciones de validación ────────────────────────────────────
+// ── Init ──────────────────────────────────────────────────────────
+actualizarNavPto();
 
-    function soloDigitos(s) { return s.replace(/\D/g, ''); }
-
-    function validarSoloNumeros(el, maxLen) {
-      const cleaned = soloDigitos(el.value);
-      el.value = cleaned;                          // elimina lo que no es dígito
-      const msg = el.nextElementSibling;
-      const hint = el.parentElement.querySelector('.field-hint');
-
-      if (el.name === 'cbu' && cleaned.length > 0 && cleaned.length !== 22) {
-        el.classList.add('error'); el.classList.remove('ok');
-        if (msg && msg.classList.contains('err-msg')) msg.classList.add('show');
-      } else if (el.name === 'cuit' && cleaned.length > 0 && cleaned.length !== 11) {
-        el.classList.add('error'); el.classList.remove('ok');
-        if (msg && msg.classList.contains('err-msg')) msg.classList.add('show');
-      } else {
-        el.classList.remove('error');
-        if (cleaned.length === maxLen) el.classList.add('ok');
-        else el.classList.remove('ok');
-        if (msg && msg.classList.contains('err-msg')) msg.classList.remove('show');
-      }
-    }
-
-    function validarTelefono(el) {
-      let cleaned = soloDigitos(el.value);
-      // Quitar 0 o 15 del inicio si hay más de 8 dígitos
-      if (cleaned.length > 8) {
-        cleaned = cleaned.replace(/^0/, '').replace(/^54/, '');
-      }
-      el.value = cleaned;
-      const ok = cleaned.length >= 7 && cleaned.length <= 20;
-      el.classList.toggle('error', cleaned.length > 0 && !ok);
-      el.classList.toggle('ok', cleaned.length > 0 && ok);
-    }
-
-    function validarEmail(el) {
-      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const msg = el.nextElementSibling;
-      const ok = !el.value || re.test(el.value.trim());
-      el.classList.toggle('error', !ok);
-      el.classList.toggle('ok', ok && el.value.length > 0);
-      if (msg && msg.classList.contains('err-msg'))
-        ok ? msg.classList.remove('show') : msg.classList.add('show');
-    }
-
-    function validarTexto(el, maxLen) {
-      const len = el.value.length;
-      el.classList.toggle('ok', len > 0 && len <= maxLen);
-    }
-
-    // Validación completa al enviar (refuerza requeridos + formatos)
-    function validarTodo(form) {
-      let ok = true;
-
-      // Campos requeridos
-      form.querySelectorAll('[required]').forEach(el => {
-        const msg = el.parentElement.querySelector('.err-msg');
-        if (!el.value.trim()) {
-          el.classList.add('error');
-          if (msg) msg.classList.add('show');
-          ok = false;
-        } else {
-          el.classList.remove('error');
-          if (msg) msg.classList.remove('show');
-        }
-      });
-
-      // CUIT: exactamente 11 dígitos
-      const cuit = form.querySelector('[name="cuit"]');
-      if (cuit && cuit.value && soloDigitos(cuit.value).length !== 11) {
-        cuit.classList.add('error');
-        cuit.parentElement.querySelector('.err-msg').classList.add('show');
-        ok = false;
-      }
-
-      // CBU: exactamente 22 dígitos si se completó
-      const cbu = form.querySelector('[name="cbu"]');
-      if (cbu && cbu.value && soloDigitos(cbu.value).length !== 22) {
-        cbu.classList.add('error');
-        cbu.parentElement.querySelector('.err-msg').classList.add('show');
-        ok = false;
-      }
-
-      // Emails
-      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      form.querySelectorAll('[type="email"]').forEach(el => {
-        if (el.value && !re.test(el.value.trim())) {
-          el.classList.add('error');
-          const msg = el.nextElementSibling;
-          if (msg && msg.classList.contains('err-msg')) msg.classList.add('show');
-          ok = false;
-        }
-      });
-
-      return ok;
-    }
-
-    // Arrancar con un punto
-    agregarPunto();
-  </script>
+// Al abrir pestaña Usuario, auto-completa los vínculos
+document.querySelector('[onclick="showTab(\'usuario\')"]').addEventListener('click', autoFillUsuario);
+</script>
 </body>
-
 </html>
