@@ -320,6 +320,44 @@
 <div class="log-wrap" id="logBox"></div>
 
 <script>
+// ── Generar resumen (definida primero para garantizar disponibilidad) ─
+function generarResumen() {
+  var empresa  = (document.getElementById('e_nombre_comercial') || {}).value ||
+                 (document.getElementById('e_razon_social') || {}).value || '';
+  var punto    = (document.getElementById('p_nombre_comercial') || {}).value || empresa;
+  var usuario  = (document.getElementById('u_nombre_usuario') || {}).value || '';
+  var password = (document.getElementById('u_password') || {}).value || '';
+  var idpunto  = (document.getElementById('u_idpunto') || {}).value || '';
+
+  if (!empresa && !usuario) {
+    alert('Completá al menos el nombre de la empresa y el usuario.');
+    return;
+  }
+
+  function pad(s, n) { while (s.length < n) s += ' '; return s; }
+
+  var lines = [
+    pad('EMPRESA', 8) + ' : ' + empresa.toUpperCase(),
+    pad('PUNTO',   8) + ' : ' + punto.toUpperCase(),
+    pad('USUARIO', 8) + ' : ' + usuario,
+  ];
+  if (password) lines.push(pad('PASS',    8) + ' : ' + password);
+  if (idpunto)  lines.push(pad('IDPUNTO', 8) + ' : ' + idpunto);
+
+  document.getElementById('resumenTxt').value = lines.join('\n');
+  document.getElementById('resumenWrap').style.display = 'block';
+  document.getElementById('resumenTxt').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function copiarResumen() {
+  var txt = document.getElementById('resumenTxt');
+  txt.select();
+  document.execCommand('copy');
+  var btn = document.getElementById('btnCopiar');
+  btn.textContent = '✓ Copiado';
+  setTimeout(function() { btn.textContent = 'Copiar'; }, 2000);
+}
+
 // ── Estado ────────────────────────────────────────────────────────
 let puntos    = [{}];
 let ptoEdIdx  = 0;   // índice editando
@@ -537,43 +575,6 @@ async function llenar(accion) {
 
 // ── Init ──────────────────────────────────────────────────────────
 actualizarNavPto();
-
-// ── Generar resumen ──────────────────────────────────────────────
-function generarResumen() {
-  const empresa  = document.getElementById('e_nombre_comercial').value ||
-                   document.getElementById('e_razon_social').value || '';
-  const punto    = document.getElementById('p_nombre_comercial').value || empresa;
-  const usuario  = document.getElementById('u_nombre_usuario').value || '';
-  const password = document.getElementById('u_password').value || '';
-  const idpunto  = document.getElementById('u_idpunto').value || '';
-
-  if (!empresa && !usuario) {
-    alert('Completá al menos el nombre de la empresa y el usuario antes de generar el resumen.');
-    return;
-  }
-
-  const pad = (lbl, n) => lbl.padEnd(n);
-  const txt = [
-    `${pad('EMPRESA', 8)} : ${empresa.toUpperCase()}`,
-    `${pad('PUNTO',   8)} : ${punto.toUpperCase()}`,
-    `${pad('USUARIO', 8)} : ${usuario}`,
-    password ? `${pad('PASS',    8)} : ${password}` : null,
-    idpunto  ? `${pad('IDPUNTO', 8)} : ${idpunto}`  : null,
-  ].filter(Boolean).join('\n');
-
-  document.getElementById('resumenTxt').value = txt;
-  document.getElementById('resumenWrap').style.display = 'block';
-  document.getElementById('resumenTxt').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-function copiarResumen() {
-  const txt = document.getElementById('resumenTxt');
-  txt.select();
-  document.execCommand('copy');
-  const btn = document.getElementById('btnCopiar');
-  btn.textContent = '✓ Copiado';
-  setTimeout(() => btn.textContent = 'Copiar', 2000);
-}
 
 // Al abrir pestaña Usuario, auto-completa los vínculos
 document.querySelector('[onclick="showTab(\'usuario\')"]').addEventListener('click', autoFillUsuario);
