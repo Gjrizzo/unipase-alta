@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unipase Bot</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue: #1a56db; --blue-dk: #1240a8; --blue-lt: #e8f0fe;
+      --green: #15803d; --green-lt: #dcfce7;
+      --red: #b91c1c;   --red-lt: #fef2f2;
+      --gray-0: #fff; --gray-1: #f8f9fb; --gray-2: #eef0f4;
+      --gray-3: #d4d8e1; --gray-5: #6b7280; --gray-9: #111827;
+      --radius: 8px;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+           font-size: 14px; color: var(--gray-9); background: var(--gray-1);
+           display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+    /* Header */
+    .topbar { background: var(--blue); color: #fff; padding: 10px 16px;
+               display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+    .topbar h1 { font-size: 16px; font-weight: 600; }
+    .topbar p  { font-size: 12px; opacity: .75; }
+
+    /* Layout */
+    .main { display: flex; flex: 1; overflow: hidden; }
+
+    /* Sidebar tabs */
+    .sidebar { width: 140px; background: var(--gray-2); border-right: 1px solid var(--gray-3);
+                display: flex; flex-direction: column; flex-shrink: 0; }
+    .tab-btn { padding: 12px 14px; font-size: 13px; cursor: pointer; border: none;
+                background: none; text-align: left; color: var(--gray-5);
+                border-left: 3px solid transparent; transition: all .15s; }
+    .tab-btn:hover  { background: var(--gray-0); color: var(--gray-9); }
+    .tab-btn.active { background: var(--gray-0); color: var(--blue);
+                       border-left-color: var(--blue); font-weight: 600; }
+
+    /* Content */
+    .content { flex: 1; overflow-y: auto; padding: 16px; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Form grid */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .grid-4 { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .span-2 { grid-column: span 2; }
+    .mb { margin-bottom: 12px; }
+
+    /* Fields */
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    .field label { font-size: 12px; font-weight: 600; color: var(--gray-5); text-transform: uppercase; letter-spacing: .04em; }
+    .field input, .field select, .field textarea {
+      border: 1px solid var(--gray-3); border-radius: var(--radius);
+      padding: 7px 10px; font-size: 13px; font-family: inherit;
+      background: var(--gray-0); color: var(--gray-9); width: 100%;
+      transition: border-color .15s; }
+    .field input:focus, .field select:focus, .field textarea:focus
+      { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,86,219,.1); }
+    .field textarea { resize: vertical; min-height: 60px; }
+
+    /* Section heading */
+    .sec { font-size: 11px; font-weight: 700; color: var(--blue); text-transform: uppercase;
+            letter-spacing: .06em; margin: 16px 0 10px; border-bottom: 1px solid var(--gray-2); padding-bottom: 6px; }
+
+    /* Punto nav */
+    .pto-nav { display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
+                background: var(--gray-2); padding: 8px 12px; border-radius: var(--radius); }
+    .pto-nav button { padding: 4px 10px; border: 1px solid var(--gray-3); border-radius: 6px;
+                       background: var(--gray-0); cursor: pointer; font-size: 13px; }
+    .pto-nav button:hover { border-color: var(--blue); color: var(--blue); }
+    .pto-nav .lbl { font-weight: 600; font-size: 13px; flex: 1; }
+    .btn-add { background: var(--green) !important; color: #fff !important;
+                border-color: var(--green) !important; }
+    .btn-del { background: var(--red-lt) !important; color: var(--red) !important;
+                border-color: var(--red) !important; }
+
+    /* Action bar */
+    .actions { flex-shrink: 0; background: var(--gray-0); border-top: 1px solid var(--gray-2);
+                padding: 10px 16px; display: flex; gap: 8px; }
+    .btn { padding: 9px 16px; border: none; border-radius: var(--radius); font-size: 13px;
+            font-weight: 600; cursor: pointer; transition: background .15s; white-space: nowrap; }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-primary:hover { background: var(--blue-dk); }
+    .btn-green { background: var(--green); color: #fff; }
+    .btn-green:hover { background: #166534; }
+    .btn-purple { background: #7c3aed; color: #fff; }
+    .btn-purple:hover { background: #6d28d9; }
+    .btn-teal { background: #0891b2; color: #fff; }
+    .btn-teal:hover { background: #0e7490; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* Log */
+    .log-wrap { flex-shrink: 0; height: 140px; background: #1e1e1e; color: #d4d4d4;
+                 font-family: 'Consolas', monospace; font-size: 12px;
+                 overflow-y: auto; padding: 8px 12px; border-top: 1px solid #333; }
+    .log-wrap .ok  { color: #4ec94b; }
+    .log-wrap .err { color: #f48771; }
+    .log-wrap .info{ color: #9cdcfe; }
+
+    /* Spinner */
+    .spin { display: inline-block; width: 12px; height: 12px;
+             border: 2px solid rgba(255,255,255,.4); border-top-color:#fff;
+             border-radius: 50%; animation: spin .6s linear infinite; vertical-align:middle; margin-right:6px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Import textarea */
+    #txtImport { width:100%; height: calc(100vh - 280px); font-size:13px;
+                  font-family: 'Consolas', monospace; resize: none; }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="topbar">
+  <div>
+    <h1>🤖 Unipase Bot</h1>
+    <p>Completá los datos y usá los botones para llenar el sistema</p>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <button class="tab-btn active" onclick="showTab('empresa')">🏢 Empresa</button>
+    <button class="tab-btn" onclick="showTab('puntos')">📍 Puntos</button>
+    <button class="tab-btn" onclick="showTab('usuario')">👤 Usuario</button>
+    <button class="tab-btn" onclick="showTab('importar')">📋 Importar</button>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- ── EMPRESA ─────────────────────────────────────────────── -->
+    <div id="tab-empresa" class="tab-panel active">
+      <div class="sec">Datos principales</div>
+      <div class="grid-2">
+        <div class="field"><label>Nombre empresa *</label><input id="e_nombre_comercial" type="text" maxlength="200"></div>
+        <div class="field"><label>Razón Social</label><input id="e_razon_social" type="text" maxlength="300"></div>
+      </div>
+      <div class="grid-3">
+        <div class="field"><label>CUIT</label><input id="e_cuit" type="text" maxlength="11" placeholder="11 dígitos sin guiones"></div>
+        <div class="field"><label>Teléfono</label><input id="e_telefono" type="text" maxlength="20"></div>
+        <div class="field"><label>Email</label><input id="e_email" type="email" maxlength="100"></div>
+      </div>
+      <div class="grid-3 mb">
+        <div class="field"><label>CBU</label><input id="e_cbu" type="text" maxlength="22" placeholder="22 dígitos"></div>
+        <div class="field"><label>Comisión $</label><input id="e_comision" type="number" min="0" step="0.01" placeholder="0.00"></div>
+        <div class="field"><label>Prefijo Remito</label><input id="e_prefijo_remito" type="text" maxlength="20"></div>
+      </div>
+
+      <div class="sec">Domicilio</div>
+      <div class="grid-4">
+        <div class="field"><label>Calle</label><input id="e_calle" type="text" maxlength="200"></div>
+        <div class="field"><label>Número</label><input id="e_numero" type="number" min="0"></div>
+        <div class="field"><label>Piso</label><input id="e_piso" type="text" maxlength="10"></div>
+        <div class="field"><label>Dpto</label><input id="e_departamento" type="text" maxlength="12"></div>
+      </div>
+      <div class="grid-3 mb">
+        <div class="field"><label>Localidad</label><input id="e_localidad" type="text" maxlength="50"></div>
+        <div class="field"><label>Provincia</label><input id="e_provincia" type="text" maxlength="100"></div>
+        <div class="field"><label>Cód. Postal</label><input id="e_codigo_postal" type="text" maxlength="16"></div>
+      </div>
+
+      <div class="sec">Administración</div>
+      <div class="grid-2 mb">
+        <div class="field"><label>Responsable</label><input id="e_responsable" type="text" maxlength="200"></div>
+        <div class="field"><label>Controladora</label>
+          <select id="e_controladora">
+            <option value="">— Seleccionar —</option>
+            <option>BUTERA</option><option>EZEQUIEL_EMPRESA</option>
+            <option>FRANCISCO_EMPRESA</option><option>GMEYER_EMPRESA</option>
+            <option>LFERNANDEZ_EMPRESA</option><option>MANAGEMENT SOLUTIONS</option>
+            <option>MAXIMO_EMPRESA</option><option>NADIA_EMPRESA</option>
+            <option>OPEN25</option><option>OROMI EZEQUIEL</option>
+            <option>UNIPASE</option><option>VANESA_EMPRESA</option>
+            <option>YAMILA_EMPRESA</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PUNTOS ──────────────────────────────────────────────── -->
+    <div id="tab-puntos" class="tab-panel">
+      <div class="pto-nav">
+        <button onclick="ptoPrev()">◀</button>
+        <span class="lbl" id="ptoLabel">Punto 1 de 1</span>
+        <button onclick="ptoNext()">▶</button>
+        <button class="btn-add" onclick="ptoNuevo()">➕ Nuevo</button>
+        <button class="btn-del" onclick="ptoEliminar()">🗑</button>
+      </div>
+
+      <div class="grid-2">
+        <div class="field"><label>Empresa (para el punto)</label><input id="p_empresa" type="text" maxlength="200"></div>
+        <div class="field"><label>Nombre del punto *</label><input id="p_nombre_comercial" type="text" maxlength="200"></div>
+      </div>
+      <div class="grid-3 mb">
+        <div class="field"><label>Email</label><input id="p_email" type="email" maxlength="200"></div>
+        <div class="field"><label>Teléfono</label><input id="p_telefono" type="text" maxlength="20"></div>
+        <div class="field"><label>Responsable</label><input id="p_responsable" type="text" maxlength="200"></div>
+      </div>
+      <div class="field mb">
+        <label>Ocupación</label>
+        <select id="p_ocupacion">
+          <option value="">— Seleccionar —</option>
+          <option>ACCESORIOS</option><option>AUTOMOTRIZ</option><option>AUTORADIO/ALARMAS</option>
+          <option>BATERIAS</option><option>CERRAJERIA</option><option>COMERCIO PARADOR</option>
+          <option>CONSECIONARIA</option><option>CRISTALEROS</option><option>DRUGSTORE</option>
+          <option>ESTACION DE SERVICIO</option><option>ESTACIONAMIENTO</option><option>FERRETERIA</option>
+          <option>GARAGE</option><option>GOMERIA</option><option>KIOSKO</option>
+          <option>LAVADERO</option><option>LUBRICENTRO</option><option>MOTOS</option>
+          <option>PUNTOS DIRECTOS</option><option>RAPIPAGO</option><option>REPUESTOS</option>
+          <option>SEGUROS</option><option>TALLER</option><option>TERECEROS</option>
+          <option>TRANSPORTE</option>
+        </select>
+      </div>
+
+      <div class="sec">Domicilio del punto</div>
+      <div class="grid-4">
+        <div class="field"><label>Calle</label><input id="p_calle" type="text" maxlength="200"></div>
+        <div class="field"><label>Número</label><input id="p_numero" type="number" min="0"></div>
+        <div class="field"><label>Piso</label><input id="p_piso" type="text" maxlength="10"></div>
+        <div class="field"><label>Dpto</label><input id="p_departamento" type="text" maxlength="12"></div>
+      </div>
+      <div class="grid-3 mb">
+        <div class="field"><label>Localidad</label><input id="p_localidad" type="text" maxlength="200"></div>
+        <div class="field"><label>Provincia</label><input id="p_provincia" type="text" maxlength="200"></div>
+        <div class="field"><label>Cód. Postal</label><input id="p_codigo_postal" type="text" maxlength="16"></div>
+      </div>
+
+      <div class="sec">Web</div>
+      <div class="grid-2">
+        <div class="field"><label>Nombre Web</label><input id="p_nombre_web" type="text" maxlength="200"></div>
+        <div class="field"><label>Coordenadas GPS</label><input id="p_coordenadas" type="text" maxlength="200"></div>
+      </div>
+      <div class="field mb">
+        <label>Horarios</label>
+        <textarea id="p_horarios" maxlength="440"></textarea>
+      </div>
+    </div>
+
+    <!-- ── USUARIO ─────────────────────────────────────────────── -->
+    <div id="tab-usuario" class="tab-panel">
+      <div class="sec">Datos del usuario</div>
+      <div class="grid-2">
+        <div class="field"><label>Apellido *</label><input id="u_apellido" type="text" maxlength="200"></div>
+        <div class="field"><label>Nombre *</label><input id="u_nombre_usu" type="text" maxlength="200"></div>
+      </div>
+      <div class="grid-2 mb">
+        <div class="field"><label>Email</label><input id="u_email" type="email" maxlength="100"></div>
+        <div class="field"><label>Nombre usuario *</label><input id="u_nombre_usuario" type="text" maxlength="50" placeholder="Ej: jperez o el email"></div>
+      </div>
+
+      <div class="sec">Vínculos (se llenan solos desde Empresa y Punto activo)</div>
+      <div class="grid-2 mb">
+        <div class="field"><label>Empresa</label><input id="u_empresa" type="text" maxlength="200"></div>
+        <div class="field"><label>Punto de Colocación</label><input id="u_punto" type="text" maxlength="200"></div>
+      </div>
+
+      <div class="sec">Datos para enviar al cliente</div>
+      <div class="grid-3 mb">
+        <div class="field"><label>Password inicial</label>
+          <input id="u_password" type="text" placeholder="Ej: Itati2026" maxlength="50">
+        </div>
+        <div class="field"><label>ID Punto</label>
+          <input id="u_idpunto" type="text" placeholder="Ej: 6607" maxlength="10">
+        </div>
+        <div class="field" style="display:flex;align-items:flex-end;">
+          <button class="btn btn-purple" style="width:100%;padding:8px;" onclick="
+            var e=document.getElementById('e_nombre_comercial').value||document.getElementById('e_razon_social').value||'';
+            var p=document.getElementById('p_nombre_comercial').value||e;
+            var u=document.getElementById('u_nombre_usuario').value||'';
+            var pw=document.getElementById('u_password').value||'';
+            var id=document.getElementById('u_idpunto').value||'';
+            var t='EMPRESA  : '+e.toUpperCase()+'\nPUNTO    : '+p.toUpperCase()+'\nUSUARIO  : '+u+(pw?'\nPASS     : '+pw:'')+(id?'\nIDPUNTO  : '+id:'');
+            document.getElementById('resumenTxt').value=t;
+            document.getElementById('resumenWrap').style.display='block';
+            document.getElementById('resumenTxt').select();
+          ">
+            📧 Generar resumen
+          </button>
+        </div>
+      </div>
+
+      <!-- Resumen generado -->
+      <div id="resumenWrap" style="display:none;">
+        <div class="sec">Resumen para enviar</div>
+        <div style="position:relative;">
+          <textarea id="resumenTxt" rows="6" readonly
+            style="width:100%;font-family:monospace;font-size:13px;
+                   background:#f8f9fb;border:1px solid #d4d8e1;
+                   border-radius:8px;padding:12px;resize:none;color:#111827;">
+          </textarea>
+          <button onclick="copiarResumen()" id="btnCopiar"
+            style="position:absolute;top:8px;right:8px;padding:4px 10px;
+                   font-size:12px;background:#1a56db;color:#fff;
+                   border:none;border-radius:6px;cursor:pointer;">
+            Copiar
+          </button>
+        </div>
+      </div>
+
+      <p style="font-size:12px;color:var(--gray-5);margin-top:12px;">
+        💡 El ID Usuario, Código Web, Ver Mensaje Sistema y Es Activo los completa el sistema automáticamente.
+      </p>
+    </div>
+
+    <!-- ── IMPORTAR ────────────────────────────────────────────── -->
+    <div id="tab-importar" class="tab-panel">
+      <div class="sec">Pegá el texto del mail</div>
+      <textarea id="txtImport" placeholder="Pegá acá el texto del mail con los datos del cliente..."></textarea>
+    </div>
+
+  </div>
+</div>
+
+<!-- Action bar -->
+<div class="actions">
+  <button class="btn btn-primary" id="btnEmpresa" onclick="llenar('empresa')">🏢 Llenar Empresa</button>
+  <button class="btn btn-green"   id="btnPunto"   onclick="llenar('punto')">📍 Llenar Punto 1/1</button>
+  <button class="btn btn-teal"    id="btnUsuario" onclick="llenar('usuario')">👤 Llenar Usuario</button>
+  <button class="btn btn-purple"  id="btnImportar" onclick="importar()">📥 Importar texto</button>
+</div>
+
+<!-- Log -->
+<div class="log-wrap" id="logBox"></div>
+
+<script>
+// ── Generar resumen (definida primero para garantizar disponibilidad) ─
+function generarResumen() {
+  var empresa  = (document.getElementById('e_nombre_comercial') || {}).value ||
+                 (document.getElementById('e_razon_social') || {}).value || '';
+  var punto    = (document.getElementById('p_nombre_comercial') || {}).value || empresa;
+  var usuario  = (document.getElementById('u_nombre_usuario') || {}).value || '';
+  var password = (document.getElementById('u_password') || {}).value || '';
+  var idpunto  = (document.getElementById('u_idpunto') || {}).value || '';
+
+  if (!empresa && !usuario) {
+    alert('Completá al menos el nombre de la empresa y el usuario.');
+    return;
+  }
+
+  function pad(s, n) { while (s.length < n) s += ' '; return s; }
+
+  var lines = [
+    pad('EMPRESA', 8) + ' : ' + empresa.toUpperCase(),
+    pad('PUNTO',   8) + ' : ' + punto.toUpperCase(),
+    pad('USUARIO', 8) + ' : ' + usuario,
+  ];
+  if (password) lines.push(pad('PASS',    8) + ' : ' + password);
+  if (idpunto)  lines.push(pad('IDPUNTO', 8) + ' : ' + idpunto);
+
+  document.getElementById('resumenTxt').value = lines.join('\n');
+  document.getElementById('resumenWrap').style.display = 'block';
+  document.getElementById('resumenTxt').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function copiarResumen() {
+  var txt = document.getElementById('resumenTxt');
+  txt.select();
+  document.execCommand('copy');
+  var btn = document.getElementById('btnCopiar');
+  btn.textContent = '✓ Copiado';
+  setTimeout(function() { btn.textContent = 'Copiar'; }, 2000);
+}
+
+// ── Estado ────────────────────────────────────────────────────────
+let puntos    = [{}];
+let ptoEdIdx  = 0;   // índice editando
+let ptoFillIdx= 0;   // índice del próximo a llenar
+
+// ── Tabs ──────────────────────────────────────────────────────────
+function showTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    if (b.textContent.toLowerCase().includes(name === 'importar' ? 'importar' : name === 'empresa' ? 'empresa' : name === 'puntos' ? 'punto' : 'usuario'))
+      b.classList.add('active');
+  });
+}
+
+// ── Log ───────────────────────────────────────────────────────────
+function addLog(lines) {
+  const box = document.getElementById('logBox');
+  lines.forEach(line => {
+    const div = document.createElement('div');
+    div.className = line.startsWith('✅') ? 'ok' : line.startsWith('❌') || line.startsWith('⚠️') ? 'err' : 'info';
+    div.textContent = line;
+    box.appendChild(div);
+  });
+  box.scrollTop = box.scrollHeight;
+}
+function logSep(title) {
+  const box = document.getElementById('logBox');
+  const div = document.createElement('div');
+  div.style.cssText = 'color:#569cd6;margin-top:6px;';
+  div.textContent = `── ${title} ──────────────────`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+// ── Empresa getters/setters ───────────────────────────────────────
+const EMP_FIELDS = ['nombre_comercial','razon_social','cuit','telefono','email','cbu',
+  'comision','prefijo_remito','calle','numero','piso','departamento','localidad',
+  'provincia','codigo_postal','responsable','controladora'];
+
+function getEmpresa() {
+  const d = {};
+  EMP_FIELDS.forEach(k => {
+    const el = document.getElementById('e_'+k);
+    d[k] = el ? el.value : '';
+  });
+  return d;
+}
+function setEmpresa(d) {
+  EMP_FIELDS.forEach(k => {
+    const el = document.getElementById('e_'+k);
+    if (el) el.value = d[k] || '';
+  });
+}
+
+// ── Punto getters/setters ─────────────────────────────────────────
+const PTO_FIELDS = ['empresa','nombre_comercial','email','telefono','responsable','ocupacion',
+  'calle','numero','piso','departamento','localidad','provincia','codigo_postal',
+  'nombre_web','coordenadas','horarios'];
+
+function getPto() {
+  const d = {};
+  PTO_FIELDS.forEach(k => {
+    const el = document.getElementById('p_'+k);
+    d[k] = el ? el.value : '';
+  });
+  return d;
+}
+function setPto(d) {
+  PTO_FIELDS.forEach(k => {
+    const el = document.getElementById('p_'+k);
+    if (el) el.value = d[k] || '';
+  });
+}
+function guardarPto() {
+  if (puntos.length && ptoEdIdx < puntos.length)
+    puntos[ptoEdIdx] = getPto();
+}
+function cargarPto(idx) {
+  ptoEdIdx = idx;
+  setPto(puntos[idx] || {});
+  actualizarNavPto();
+}
+function actualizarNavPto() {
+  const n = puntos.length;
+  document.getElementById('ptoLabel').textContent = `Punto ${ptoEdIdx+1} de ${n}`;
+  const fi = ptoFillIdx >= n ? n : ptoFillIdx;
+  document.getElementById('btnPunto').textContent = `📍 Llenar Punto ${fi+1}/${n}`;
+}
+function ptoPrev() { guardarPto(); if (ptoEdIdx>0) cargarPto(ptoEdIdx-1); }
+function ptoNext() { guardarPto(); if (ptoEdIdx<puntos.length-1) cargarPto(ptoEdIdx+1); }
+function ptoNuevo() {
+  guardarPto();
+  const emp = document.getElementById('e_nombre_comercial').value ||
+              document.getElementById('e_razon_social').value || '';
+  puntos.push({ empresa: emp });
+  ptoFillIdx = Math.min(ptoFillIdx, puntos.length-1);
+  cargarPto(puntos.length-1);
+}
+function ptoEliminar() {
+  if (puntos.length<=1) return alert('Debe haber al menos un punto.');
+  puntos.splice(ptoEdIdx,1);
+  ptoFillIdx = Math.min(ptoFillIdx, puntos.length-1);
+  cargarPto(Math.min(ptoEdIdx, puntos.length-1));
+}
+
+// ── Usuario getters/setters ───────────────────────────────────────
+const USR_FIELDS = ['apellido','nombre_usu','email','nombre_usuario','empresa','punto'];
+function getUsuario() {
+  const d = {};
+  USR_FIELDS.forEach(k => {
+    const el = document.getElementById('u_'+k);
+    d[k] = el ? el.value : '';
+  });
+  return d;
+}
+function setUsuario(d) {
+  USR_FIELDS.forEach(k => {
+    const el = document.getElementById('u_'+k);
+    if (el) el.value = d[k] || '';
+  });
+}
+
+// Auto-fill usuario from empresa + punto
+function autoFillUsuario() {
+  const emp = getEmpresa();
+  guardarPto();
+  const pto = puntos[ptoFillIdx] || puntos[0] || {};
+  const resp = pto.responsable || '';
+  const parts = resp.trim().split(/\s+/);
+  const apellido = parts.length > 1 ? parts.slice(1).join(' ') : resp;
+  const nombre   = parts.length > 1 ? parts[0] : '';
+  setUsuario({
+    apellido,
+    nombre_usu:     nombre,
+    email:          pto.email || emp.email || '',
+    empresa:        emp.nombre_comercial || emp.razon_social || '',
+    punto:          pto.nombre_comercial || '',
+    nombre_usuario: (pto.email || '').split('@')[0] || '',
+  });
+}
+
+// ── Importar ──────────────────────────────────────────────────────
+async function importar() {
+  const texto = document.getElementById('txtImport').value.trim();
+  if (!texto) return alert('Pegá el texto del mail primero.');
+
+  const r = await fetch('/api/importar', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ texto })
+  });
+  const data = await r.json();
+
+  setEmpresa(data.empresa);
+  const emp_nombre = data.empresa.nombre_comercial || data.empresa.razon_social || '';
+  puntos = data.puntos.length ? data.puntos.map(p => ({ ...p, empresa: p.empresa || emp_nombre })) : [{ empresa: emp_nombre }];
+  ptoFillIdx = 0;
+  cargarPto(0);
+  autoFillUsuario();
+
+  logSep('Importado');
+  addLog([`✅ Empresa: ${data.empresa.razon_social || data.empresa.nombre_comercial}`]);
+  addLog([`✅ ${puntos.length} punto(s) importado(s)`]);
+  showTab('empresa');
+}
+
+// ── Llenar ────────────────────────────────────────────────────────
+async function llenar(accion) {
+  let datos;
+  if (accion === 'empresa') {
+    datos = getEmpresa();
+  } else if (accion === 'punto') {
+    guardarPto();
+    if (ptoFillIdx >= puntos.length) {
+      addLog(['✅ Ya se llenaron todos los puntos. Pegá texto nuevo para reiniciar.']);
+      return;
+    }
+    datos = puntos[ptoFillIdx];
+  } else if (accion === 'usuario') {
+    datos = getUsuario();
+  }
+
+  const btnMap = { empresa:'btnEmpresa', punto:'btnPunto', usuario:'btnUsuario' };
+  const btn = document.getElementById(btnMap[accion]);
+  const origText = btn.textContent;
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spin"></span> Llenando...`;
+
+  const label = accion === 'punto' ? `Punto ${ptoFillIdx+1}/${puntos.length}` : accion.charAt(0).toUpperCase()+accion.slice(1);
+  logSep(label);
+
+  try {
+    const r = await fetch('/api/llenar', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ accion, datos })
+    });
+    const data = await r.json();
+    addLog(data.log);
+
+    if (data.ok && accion === 'punto') {
+      ptoFillIdx++;
+      actualizarNavPto();
+      // Auto-fill usuario para el siguiente
+      autoFillUsuario();
+    }
+  } catch (e) {
+    addLog([`❌ Error de red: ${e.message}`]);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = origText;
+    if (accion === 'punto') actualizarNavPto();
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────────
+actualizarNavPto();
+
+// Al abrir pestaña Usuario, auto-completa los vínculos
+document.querySelector('[onclick="showTab(\'usuario\')"]').addEventListener('click', autoFillUsuario);
+</script>
+</body>
+</html>
